@@ -1,18 +1,38 @@
 <?php
 class Api_Odr
 {
-    protected $_result = null;
-    protected $_error  = null;
+    /**
+     * @var null|array
+     *
+     * @protected
+     */
+    protected $_result;
 
+    /**
+     * @var null|string
+     *
+     * @protected
+     */
+    protected $_error;
+
+    /**
+     * @var array
+     *
+     * @protected
+     */
     protected $_headers = array();
 
+    /**
+     * @var array
+     *
+     * @protected
+     */
     protected $_config = array();
 
     /**
      * In case URL will be changed in the future
      */
     const URL = 'https://api.opendomainregistry.net/';
-    //const URL = 'http://old.odrregistry.nl/api2/';
 
     const METHOD_GET     = 'GET';
     const METHOD_POST    = 'POST';
@@ -23,11 +43,17 @@ class Api_Odr
 
     const MESSAGE_CURL_ERROR_FOUND = 'cURL error catched';
 
+    const STATUS_SUCCESS = 'success';
+    const STATUS_ERROR   = 'error';
+
     /**
      * Class constructor
      *
      * @param array $config Configuration data
+     *
      * @return Api_Odr
+     *
+     * @throws Api_Odr_Exception
      */
     public function __construct(array $config = array())
     {
@@ -37,7 +63,7 @@ class Api_Odr
             exit();
         }
 
-        if (!empty($config) && is_array($config)) {
+        if (count($config) > 0) {
             $this->setConfig($config);
         }
     }
@@ -46,19 +72,22 @@ class Api_Odr
      * Change configuration data
      *
      * @param array $config Configuration array
+     *
      * @return Api_Odr
      *
      * @throws Api_Odr_Exception
      */
     public function setConfig(array $config = array())
     {
-        if (empty($config)) {
-            throw new Api_Odr_Exception('Config is not an array or empty');
+        if (count($config) === 0) {
+            throw new Api_Odr_Exception('Config is empty');
         }
 
-        foreach ($config as $key => $value) {
-            $config[$key] = trim($value, ' /.,');
+        foreach ($config as &$value) {
+            $value = trim($value, ' /.,');
         }
+
+        unset($value);
 
         $this->_config = $config;
 
@@ -72,6 +101,7 @@ class Api_Odr
      *
      * @param string|null $apiKey    User's API Key
      * @param string|null $apiSecret User's API Secret
+     *
      * @return Api_Odr
      *
      * @throws Api_Odr_Exception
@@ -81,7 +111,7 @@ class Api_Odr
         $this->_execute('/info/user/login', self::METHOD_POST);
 
         if (!empty($this->_error)) {
-            throw new Api_Odr_Exception(self::MESSAGE_CURL_ERROR_FOUND . ': ' . $this->_error);
+            throw new Api_Odr_Exception(self::MESSAGE_CURL_ERROR_FOUND);
         }
 
         $result = $this->_result;
@@ -146,11 +176,8 @@ class Api_Odr
         $this->_execute('/user/login/', self::METHOD_POST, $data);
 
         $result = $this->_result;
-		
-		if(isset($result['response']))
-		{
-        	$this->_headers[$result['response']['header']] = $result['response']['access_token'];
- 		}
+
+        $this->setHeader($result['response']['header'], $result['response']['access_token']);
 
         return $this;
     }
@@ -159,6 +186,8 @@ class Api_Odr
      * Return list of user's domains
      *
      * @return Api_Odr
+     *
+     * @throws Api_Odr_Exception
      */
     public function getDomains()
     {
@@ -170,7 +199,8 @@ class Api_Odr
     /**
      * Check if domain is available or not
      *
-     * @param string|integer $domain Either ID or domain name
+     * @param string|int $domain Either ID or domain name
+     *
      * @return Api_Odr
      *
      * @throws Api_Odr_Exception
@@ -195,8 +225,9 @@ class Api_Odr
     /**
      * Update existing domain with new data
      *
-     * @param string|integer $id   Either ID or domain name
-     * @param array          $data Data for update
+     * @param string|int $id   Either ID or domain name
+     * @param array      $data Data for update
+     *
      * @return Api_Odr
      */
     public function updateDomain($id, array $data = array())
@@ -209,35 +240,39 @@ class Api_Odr
     /**
      * Transfers domain from one user to another
      *
-     * @param string $id   Domain ID or domain name
-     * @param array  $data Data to update
+     * @param string|int $id   Domain ID or domain name
+     * @param array      $data Data to update
+     *
      * @return Api_Odr
      *
-     * @todo Not implemented in the API yet, but will be
+     * @throws Api_Odr_Exception
      */
     public function transferDomain($id, array $data = array())
     {
-        $this->_execute('/domain/transfer/'. trim($id) .'/', self::METHOD_PUT, $data);
+        $this->_execute('/domain/'. trim($id) .'/transfer/', self::METHOD_PUT, $data);
 
         return $this;
     }
 
     /**
-     * Return list of user's unified contacts
+     * Return list of user's contacts
      *
      * @return Api_Odr
+     *
+     * @throws Api_Odr_Exception
      */
     public function getContacts()
     {
-        $this->_execute('/unified-contact/', self::METHOD_GET);
+        $this->_execute('/contact/', self::METHOD_GET);
 
         return $this;
     }
 
     /**
-     * Get information about single unified contact
+     * Get information about single contact
      *
-     * @param int $contactId
+     * @param int $contactId Contact ID
+     *
      * @return Api_Odr
      *
      * @throws Api_Odr_Exception
@@ -254,25 +289,30 @@ class Api_Odr
             throw new Api_Odr_Exception('Contact ID must be a positive number');
         }
 
-        $this->_execute('/unified-contact/'. $contactId .'/', self::METHOD_GET);
+        $this->_execute('/contact/'. $contactId .'/', self::METHOD_GET);
 
         return $this;
     }
 
     /**
-     * Creates unified contact from passed data
+     * Creates contact from passed data
      *
-     * @param array $data Data for contact. If data is empty, $_REQUEST will be used
+     * @param array $data Data for contact
+     *
      * @return Api_Odr
+     *
+     * @throws Api_Odr_Exception
      */
-    public function createContact(array $data = array())
+    public function createContact(array $data)
     {
-        // Just in case someone decides to pass data as part of $_REQUEST
+        // If you want to pass data directly as part of request, you can uncomment following lines:
+        /*
         if (empty($data)) {
             $data = $_REQUEST;
         }
+        */
 
-        $this->_execute('/unified-contact/', self::METHOD_POST, $data);
+        $this->_execute('/contact/', self::METHOD_POST, $data);
 
         return $this;
     }
@@ -282,28 +322,28 @@ class Api_Odr
      *
      * @param string|array $domainName Either domain name as string or whole request data as array (must have 'domain_name' key)
      * @param array        $data       Data for new domain. Only usable if $domainName is a string
+     *
      * @return Api_Odr
      *
      * @throws Api_Odr_Exception
      */
-    public function registerDomain($domainName, array $data = array())
+    public function registerDomain($domainName, array $data)
     {
-        if (empty($data) && is_array($domainName)) {
+        if (is_array($domainName) && count($data) === 0) {
             $data       = $domainName;
             $domainName = null;
         }
 
+        // If you want to pass data directly as part of request, you can uncomment following lines:
+        /*
         if (empty($data)) {
             $data = $_REQUEST;
         }
+        */
 
         if ((!is_string($domainName) || $domainName === '') && array_key_exists('domain_name', $data) === false) {
             throw new Api_Odr_Exception('No domain name defined');
         }
-
-//        if (empty($data['handle_id'])) { // ODR ERROR
-//            throw new Api_Odr_Exception('No handle defined');
-//        }
 
         if (!is_string($domainName) || $domainName === '') {
             $domainName = $data['domain_name'];
@@ -320,6 +360,7 @@ class Api_Odr
      * @param string $what   About what you want to know information about. Either URL or a string
      * @param mixed  $method If $what is an URL, then method should be a string. If not, then $method might be an array (instead of data) or null
      * @param array  $data   Additional data for request
+     *
      * @return Api_Odr
      *
      * @throws Api_Odr_Exception
@@ -332,14 +373,17 @@ class Api_Odr
 
         $what = strtolower(trim($what));
 
-        return $this->custom('/info/'. ltrim($what, '/'), $method);
+        return $this->custom('/info/'. trim($what, '/') .'/', $method, $data);
     }
 
     /**
      * Information about domain registration
      *
      * @param string $domainName Domain name to get info about
+     *
      * @return Api_Odr
+     *
+     * @throws Api_Odr_Exception
      */
     public function infoRegisterDomain($domainName)
     {
@@ -353,31 +397,17 @@ class Api_Odr
      * @param string $url    Request URL
      * @param string $method cURL request method
      * @param array  $data   Data for request
+     *
      * @return Api_Odr
+     *
+     * @throws Api_Odr_Exception
      */
     public function custom($url, $method = self::DEFAULT_METHOD, array $data = array())
     {
-    	try
-    	{
-        	$this->_execute($url, $method, $data);
-    	}
-    	catch(Api_Odr_Exception $e)
-    	{
-    		$this->_error = $e->getMessage();
-    	}
-
-        if (!empty($this->_error)) {
-            return array(
-                'is_error'  => true,
-                'error_msg' => $this->_error,
-            );
-        }
-
-        if (!empty($this->_result)) {
-            return array(
-                'is_error' => false,
-                'data'     => $this->_result,
-            );
+        try {
+            return $this->_execute($url, $method, $data);
+        } catch (Api_Odr_Exception $e) {
+            $this->_error = $e->getMessage();
         }
 
         return $this;
@@ -389,6 +419,7 @@ class Api_Odr
      * @param string $url    Where send request
      * @param string $method What method should be called
      * @param array  $data   Additional data to send
+     *
      * @return Api_Odr
      *
      * @throws Api_Odr_Exception
@@ -397,34 +428,37 @@ class Api_Odr
      */
     protected function _execute($url = '', $method = self::DEFAULT_METHOD, array $data = array())
     {
-    	$this->_result = null;
+        $this->_result = null;
+
         if (!is_string($method) || $method === '') {
             $method = self::DEFAULT_METHOD;
         }
 
         $method = strtoupper($method);
+        $host   = $this->getUrl();
 
         if (!is_string($url) || $url === '') {
-            $url = self::URL;
+            $url = $host;
         }
 
         if (strpos($url, '/') === 0) {
-            $url = self::URL . ltrim($url, '/');
+            $url = $host . ltrim($url, '/');
         }
 
-        if (strpos($url, self::URL) !== 0) {
+        if (strpos($url, $host) !== 0) {
             throw new Api_Odr_Exception('Wrong host for URL ('. $url .')');
         }
 
         $ch = curl_init($url);
+
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST,  $method);
 
-        if (!empty($data)) {
+        if (count($data) > 0) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         }
 
-        if (!empty($this->_headers)) {
+        if (count($this->_headers) > 0) {
             $headers = array();
 
             foreach ($this->_headers as $k => $v) {
@@ -448,7 +482,7 @@ class Api_Odr
         sleep(1);
 
         if (!empty($this->_error)) {
-            throw new Api_Odr_Exception(self::MESSAGE_CURL_ERROR_FOUND . ': ' . $this->_error);
+            throw new Api_Odr_Exception(self::MESSAGE_CURL_ERROR_FOUND);
         }
 
         return $this;
@@ -457,7 +491,7 @@ class Api_Odr
     /**
      * Return request result
      *
-     * @return mixed
+     * @return null|array
      */
     public function getResult()
     {
@@ -467,11 +501,52 @@ class Api_Odr
     /**
      * Return possible cURL error
      *
-     * @return mixed
+     * @return null|string
      */
     public function getError()
     {
         return $this->_error;
+    }
+
+    /**
+     * Returns all headers, that will be set for request
+     *
+     * @return array
+     */
+    public function getHeaders()
+    {
+        return $this->_headers;
+    }
+
+    /**
+     * Returns usable API URL
+     *
+     * @return string
+     */
+    public function getUrl()
+    {
+        return empty($this->_config['url']) ? self::URL : $this->_config['url'];
+    }
+
+    /**
+     * Sets header value
+     *
+     * @param string|array $name  Either array with headers to set or header key name
+     * @param mixed        $value Value for header (only if $name is string)
+     *
+     * @return Api_Odr
+     */
+    public function setHeader($name, $value = null)
+    {
+        if (!is_array($name)) {
+            $name = array(
+                $name => $value,
+            );
+        }
+
+        $this->_headers = array_merge($this->_headers, $name);
+
+        return $this;
     }
 }
 

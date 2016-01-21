@@ -735,7 +735,7 @@ class opendomainregistry implements IRegistrar
     }
 
     /**
-     * Get information availabe of the requested contact
+     * Get information available of the requested contact
      *
      * @param string $handle The handle of the contact to request
      *
@@ -779,6 +779,7 @@ class opendomainregistry implements IRegistrar
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
         }
+        die(var_dump($result));
 
         /**
          * Step 2) provide feedback to WeFact
@@ -797,7 +798,7 @@ class opendomainregistry implements IRegistrar
 
         $whois->ownerCountry      = $result['response']['contact']['country'];
         $whois->ownerPhoneNumber  = $result['response']['contact']['phone'];
-        $whois->ownerFaxNumber    = '';
+        $whois->ownerFaxNumber    = $result['response']['contact']['fax'];
         $whois->ownerEmailAddress = $result['response']['contact']['email'];
 
         return $whois;
@@ -900,6 +901,8 @@ class opendomainregistry implements IRegistrar
      * @param array  $nameservers The new set of nameservers
      *
      * @return bool Was update successful or not
+     *
+     * @throws Api_Odr_Exception
      */
     public function updateNameServers($domain, $nameservers = array())
     {
@@ -994,6 +997,10 @@ class opendomainregistry implements IRegistrar
      */
     public function parseError($message, $code = '')
     {
+        if (is_array($message)) {
+            $message = $message['message'];
+        }
+
         $this->Error[] = 'ODR: ' . ($code ? $code . ' - ' : '') . $message;
 
         return false;
