@@ -37,10 +37,10 @@ class opendomainregistry implements IRegistrar
         $this->TldPeriod3  = array('vc','vg');
         $this->TldPeriod10 = array('tm');
     }
-    
+
     /**
      * Check whether a domain is already registered or not
-     * 
+     *
      * @param string $domain The name of the domain that needs to be checked
      *
      * @return bool True if free, False if not free, False and $this->Error[] in case of error
@@ -72,7 +72,7 @@ class opendomainregistry implements IRegistrar
 
     /**
      * Register a new domain
-     * 
+     *
      * @param string $domain      The domainname that needs to be registered
      * @param array  $nameservers The nameservers for the new domain
      * @param whois  $whois       The customer information for the domain's whois information
@@ -127,7 +127,7 @@ class opendomainregistry implements IRegistrar
             'contact_onsite'     => $adminHandle,
             'auth_code'          => substr(md5(time()), 0, 6),
         );
-        
+
         $parameters = array_merge($parameters, $nameservers);
 
         // Calls
@@ -141,10 +141,10 @@ class opendomainregistry implements IRegistrar
             return false;
         }
     }
-    
+
     /**
      * Transfer a domain to the given user
-     * 
+     *
      * @param string $domain      Domain name for transfer
      * @param array  $nameservers The nameservers for the transfered domain
      * @param whois  $whois       The contact information for the new owner, admin, tech and billing contact
@@ -159,7 +159,7 @@ class opendomainregistry implements IRegistrar
         if (!$loggedIn) {
             return false;
         }
-        
+
         $tld = substr(stristr($domain, '.'), 1);
 
         /**
@@ -193,14 +193,14 @@ class opendomainregistry implements IRegistrar
         /**
          * Step 6) register domain
          */
-        // Start registering the domain, you can use $domain, $ownerHandle, $adminHandle, $techHandle, $nameservers        
+        // Start registering the domain, you can use $domain, $ownerHandle, $adminHandle, $techHandle, $nameservers
         $parameters = array(
             'contact_registrant' => $ownerHandle,
             'contact_tech'       => $techHandle,
             'contact_onsite'     => $adminHandle,
             'auth_code'          => $authcode,
         );
-        
+
         $parameters = array_merge($parameters, $nameservers);
 
         // Calls
@@ -296,7 +296,7 @@ class opendomainregistry implements IRegistrar
         $whois->techHandle  = $result['response']['contact_tech'];
 
         $authkey         = $result['response']['auth_code'];
-        $expiration_date = substr($result['response']['expiration_date'], 0, 10);
+        $expiration_date = date('Y-m-d', strtotime($result['response']['expiration_date']));
 
         /**
          * Step 2) provide feedback to WeFact
@@ -316,10 +316,10 @@ class opendomainregistry implements IRegistrar
 
         return $response;
     }
-    
+
     /**
      * Get a list of all the domains
-     * 
+     *
      * @param string $contactHandle The handle of a contact, so the list could be filtered (useful for updating domain whois data)
      *
      * @return array
@@ -355,15 +355,14 @@ class opendomainregistry implements IRegistrar
          */
         $domains = array();
 
-        // Loop for all domains:
         foreach ($result['response'] as $domain) {
             // Return array with data, later on....getDomainInformation will add other information
             $response = array(
-                'Domain'      => $domain['domain_name'],
+                'Domain'      => $domain['api_handle'] .'.'. $domain['tld'],
                 'Information' => array(
                     'nameservers' => array(),
                     'whois'       => null,
-                    'expires'     => '',
+                    'expires'     => date('Y-m-d', strtotime($domain['expiration_date'])),
                     'regdate'     => '',
                     'authkey'     => '',
                 )
@@ -378,7 +377,7 @@ class opendomainregistry implements IRegistrar
 
     /**
      * Change the lock status of the specified domain
-     * 
+     *
      * @param string $domain The domain to change the lock state for
      * @param bool   $lock   The new lock state
      *
@@ -386,12 +385,12 @@ class opendomainregistry implements IRegistrar
      */
     public function lockDomain($domain, $lock = true)
     {
-        return $this->parseError('Helaas bezit de API van ODR geen mogelijkheid om domeinnamen te locken. Er wordt niets uitgevoerd.');    
+        return $this->parseError('Helaas bezit de API van ODR geen mogelijkheid om domeinnamen te locken. Er wordt niets uitgevoerd.');
     }
 
     /**
      * Change the autorenew state of the given domain. When autorenew is enabled, the domain will be extended
-     * 
+     *
      * @param string $domain    The domain name to change the autorenew setting for
      * @param bool   $autorenew The new autorenew value (True = On|False = Off)
      *
@@ -421,7 +420,7 @@ class opendomainregistry implements IRegistrar
 
     /**
      * Get EPP code/token
-     * 
+     *
      * @param mixed $domain Domain name
      *
      * @return null|string
@@ -557,7 +556,7 @@ class opendomainregistry implements IRegistrar
 
         return true;
     }
-    
+
     /**
      * Returns domain whois handles
      *
@@ -577,7 +576,6 @@ class opendomainregistry implements IRegistrar
 
         $result = $this->odr->getResult();
 
-        // Logout
         $this->_checkLogout($loggedIn);
 
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
@@ -590,9 +588,6 @@ class opendomainregistry implements IRegistrar
         $contacts['adminHandle'] = $result['response']['contact_onsite'];
         $contacts['techHandle']  = $result['response']['contact_tech'];
 
-        /**
-         * Step 2) provide feedback to WeFact
-         */
         return $contacts;
     }
 
@@ -833,22 +828,22 @@ class opendomainregistry implements IRegistrar
         foreach ($contacts as $contactId) {
             $contact = $this->getContact($contactId);
             
-            if (($whois->{$prefix . 'Initials'} == $contact->ownerInitials || str_replace('.', '', $whois->{$prefix . 'Initials'}) == $contact->ownerInitials) &&
+            if (($whois->{$prefix . 'Initials'} === $contact->ownerInitials || str_replace('.', '', $whois->{$prefix . 'Initials'}) === $contact->ownerInitials) &&
                 $whois->{$prefix . 'SurName'} === $contact->ownerSurName &&
                 $whois->{$prefix . 'CompanyName'} === $contact->ownerCompanyName &&
                 $whois->{$prefix . 'EmailAddress'} === $contact->ownerEmailAddress)
             {
-                    return $contactId;
+                return $contactId;
             }
           }
 
         // No handle is found
         return false;    
     }
-    
+
     /**
      * Get a list of contact handles available
-     * 
+     *
      * @param string $surname Surname to limit the number of records in the list
      *
      * @return array List of all contact matching the $surname search criteria
@@ -933,9 +928,9 @@ class opendomainregistry implements IRegistrar
 
     /**
      * Get class version information
-     * 
+     *
      * @return array
-     * 
+     *
      * @static
      */
     static public function getVersionInformation()
@@ -951,7 +946,7 @@ class opendomainregistry implements IRegistrar
         if ($this->AccessToken) {
             return false;
         }
-    
+
         // Configuration array, with user API Keys
         $config = array(
             'api_key'    => $this->User,
@@ -1008,11 +1003,11 @@ class opendomainregistry implements IRegistrar
 
     /**
      * Checks the period for correct value
-     * 
+     *
      * @param string $tld
-     * 
+     *
      * @return int
-     * 
+     *
      * @protected
      */
     protected function _checkPeriod($tld)

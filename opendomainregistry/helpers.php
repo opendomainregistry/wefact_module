@@ -229,6 +229,8 @@ class Api_Odr
      * @param array      $data Data for update
      *
      * @return Api_Odr
+     *
+     * @throws Api_Odr_Exception
      */
     public function updateDomain($id, array $data = array())
     {
@@ -399,8 +401,6 @@ class Api_Odr
      * @param array  $data   Data for request
      *
      * @return Api_Odr
-     *
-     * @throws Api_Odr_Exception
      */
     public function custom($url, $method = self::DEFAULT_METHOD, array $data = array())
     {
