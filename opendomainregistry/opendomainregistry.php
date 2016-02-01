@@ -1,7 +1,7 @@
 <?php
 require_once '3rdparty/domain/IRegistrar.php';
 require_once '3rdparty/domain/standardfunctions.php';
-require_once '3rdparty/domain/opendomainregistry/helpers.php';
+require_once 'helpers.php';
 
 class opendomainregistry implements IRegistrar
 {
@@ -10,13 +10,22 @@ class opendomainregistry implements IRegistrar
 
     public $User;
     public $Password;
+    public $Testmode = false;
 
     public $Error;
     public $Warning;
     public $Success;
 
     public $Period = 1;
+
     public $registrarHandles = array();
+
+    /**
+     * @var string
+     *
+     * @protected
+     */
+    protected $_versionFile = 'version.php';
 
     private $ClassName;
     private $AccessToken;
@@ -36,6 +45,16 @@ class opendomainregistry implements IRegistrar
         $this->TldPeriod2  = array('com.au','gr','ma','co.uk','me.uk','org.uk','ro','aero','cl','do','gr','il','co.il','la','mu','ph','pk','to','us');
         $this->TldPeriod3  = array('vc','vg');
         $this->TldPeriod10 = array('tm');
+
+        // Configuration array, with user API Keys
+        $config = array(
+            'api_key'    => $this->User,
+            'api_secret' => $this->Password,
+            'url'        => $this->Testmode ? self::URL_TEST : self::URL_LIVE,
+        );
+
+        // Create new instance of API demo class
+        $this->odr = new Api_Odr($config);
     }
 
     /**
@@ -51,23 +70,21 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        // Calls
         try {
             $this->odr->checkDomain($domain);
-
-            $result = $this->odr->getResult();
-
-            // Build response
-            if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
-                return $this->parseError($result['response']);
-            }
-
-            return (bool)$result['response']['available'];
         } catch(Api_Odr_Exception $e) {
             $this->Error[] = $e->getMessage();
 
             return false;
         }
+
+        $result = $this->odr->getResult();
+
+        if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
+            return $this->parseError($result['response']);
+        }
+
+        return (bool)$result['response']['available'];
     }
 
     /**
@@ -75,9 +92,11 @@ class opendomainregistry implements IRegistrar
      *
      * @param string $domain      The domainname that needs to be registered
      * @param array  $nameservers The nameservers for the new domain
-     * @param whois  $whois       The customer information for the domain's whois information
+     * @param Whois  $whois       The customer information for the domain's whois information
      *
      * @return bool
+     *
+     * @throws Api_Odr_Exception
      */
     public function registerDomain($domain, $nameservers = array(), $whois = null)
     {
@@ -89,9 +108,6 @@ class opendomainregistry implements IRegistrar
 
         $tld = substr(stristr($domain, '.'), 1);
 
-        /**
-         * Step 1) obtain an owner handle
-         */
         $ownerHandle = $this->_obtainHandle($domain, $whois, 'owner', HANDLE_OWNER);
 
         if (!$ownerHandle) {
@@ -110,16 +126,10 @@ class opendomainregistry implements IRegistrar
             return $techHandle;
         }
 
-        /**
-         * Step 5) check your own default settings
-         */
         $this->_checkPeriod($tld);
 
         $period = $this->Period * 12;
 
-         /**
-         * Step 6) register domain
-         */
         $parameters = array(
             'period'             => $period,
             'contact_registrant' => $ownerHandle,
@@ -130,7 +140,6 @@ class opendomainregistry implements IRegistrar
 
         $parameters = array_merge($parameters, $nameservers);
 
-        // Calls
         try {
             $this->odr->registerDomain($domain, $parameters);
 
@@ -147,10 +156,12 @@ class opendomainregistry implements IRegistrar
      *
      * @param string $domain      Domain name for transfer
      * @param array  $nameservers The nameservers for the transfered domain
-     * @param whois  $whois       The contact information for the new owner, admin, tech and billing contact
+     * @param Whois  $whois       The contact information for the new owner, admin, tech and billing contact
      * @param string $authcode    Authorisation code for domain
      *
      * @return bool
+     *
+     * @throws Api_Odr_Exception
      */
     public function transferDomain($domain, $nameservers = array(), $whois = null, $authcode = '')
     {
@@ -203,7 +214,6 @@ class opendomainregistry implements IRegistrar
 
         $parameters = array_merge($parameters, $nameservers);
 
-        // Calls
         $this->odr->transferDomain($domain, $parameters);
 
         return $this->_checkResult(true, $loggedIn);
@@ -256,7 +266,7 @@ class opendomainregistry implements IRegistrar
      *
      * @param mixed $domain The domain for which the information is requested
      *
-     * @return array
+     * @return array|bool
      */
     public function getDomainInformation($domain)
     {
@@ -273,7 +283,6 @@ class opendomainregistry implements IRegistrar
 
         $result = $this->odr->getResult();
 
-        // Logout
         $this->_checkLogout($loggedIn);
 
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
@@ -298,23 +307,16 @@ class opendomainregistry implements IRegistrar
         $authkey         = $result['response']['auth_code'];
         $expiration_date = date('Y-m-d', strtotime($result['response']['expiration_date']));
 
-        /**
-         * Step 2) provide feedback to WeFact
-         */
-
-        // Return array with data
-        $response = array(
+        return array(
             'Domain'      => $domain,
             'Information' => array(
-                'nameservers'       => $nameservers, // Array with 1, 2 or 3 elements (hostnames)
-                'whois'             => $whois, // Whois object
+                'nameservers'       => $nameservers,
+                'whois'             => $whois,
                 'expiration_date'   => $expiration_date,
                 'registration_date' => '',
                 'authkey'           => $authkey,
             ),
         );
-
-        return $response;
     }
 
     /**
@@ -322,7 +324,9 @@ class opendomainregistry implements IRegistrar
      *
      * @param string $contactHandle The handle of a contact, so the list could be filtered (useful for updating domain whois data)
      *
-     * @return array
+     * @return array|bool
+     *
+     * @throws Api_Odr_Exception
      */
     public function getDomainList($contactHandle = '')
     {
@@ -332,32 +336,26 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $filter = array(
-            'contact' => $contactHandle,
-        );
+        $filter = array();
 
-        /**
-         * Step 1) query domain
-         */
+        if ($contactHandle) {
+            $filter['contact'] = $contactHandle;
+        }
+
         $this->odr->getDomains($filter);
 
         $result = $this->odr->getResult();
 
-        // Logout
         $this->_checkLogout($loggedIn);
 
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
         }
 
-        /**
-         * Step 2) provide feedback to WeFact
-         */
         $domains = array();
 
         foreach ($result['response'] as $domain) {
-            // Return array with data, later on....getDomainInformation will add other information
-            $response = array(
+            $domains[] = array(
                 'Domain'      => $domain['api_handle'] .'.'. $domain['tld'],
                 'Information' => array(
                     'nameservers' => array(),
@@ -365,13 +363,10 @@ class opendomainregistry implements IRegistrar
                     'expires'     => date('Y-m-d', strtotime($domain['expiration_date'])),
                     'regdate'     => '',
                     'authkey'     => '',
-                )
+                ),
             );
-
-            $domains[] = $response;
         }
 
-        // When loop is ready, return array
         return $domains;
     }
 
@@ -404,12 +399,12 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $this->odr->custom('/domain/' . $domain . '/renew-' . ($autorenew ? 'on' : 'off') .'/', Api_Odr::METHOD_PUT);
+        $this->odr->setAutorenew($domain, $autorenew);
 
         $result = $this->odr->getResult();
 
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
-            return $this->parseError($result['response']);
+            return $this->parseError($result['response']['message'], $result['code']);
         }
 
         $this->_checkLogout($loggedIn);
@@ -476,10 +471,8 @@ class opendomainregistry implements IRegistrar
 
             $domains[$domain]['Status'] = 'success';
 
-            // Increment counter
             $checked++;
 
-            // Stop loop after max domains
             if ($limit !== null && $checked > $limit) {
                 break;
             }
@@ -493,9 +486,11 @@ class opendomainregistry implements IRegistrar
      * Update the domain Whois data, but only if no handles are used by the registrar
      * 
      * @param mixed $domain
-     * @param whois $whois
+     * @param Whois $whois
      *
      * @return bool
+     *
+     * @throws Api_Odr_Exception
      */
     public function updateDomainWhois($domain, $whois)
     {
@@ -541,12 +536,10 @@ class opendomainregistry implements IRegistrar
         $parameters['contact_tech']       = $techHandle;
         $parameters['contact_onsite']     = $adminHandle;
 
-        // Calls
         $this->odr->updateDomain($domain, $parameters);
 
         $result = $this->odr->getResult();
 
-        // Logout
         $this->_checkLogout($loggedIn);
 
         // Build response
@@ -563,6 +556,8 @@ class opendomainregistry implements IRegistrar
      * @param mixed $domain Domain name
      *
      * @return array Domain info with handles
+     *
+     * @throws Api_Odr_Exception
      */
     public function getDomainWhois($domain)
     {
@@ -594,10 +589,12 @@ class opendomainregistry implements IRegistrar
     /**
      * Create a new whois contact
      *
-     * @param whois  $whois The whois information for the new contact
+     * @param Whois  $whois The whois information for the new contact
      * @param string $type  The contact type. This is only used to access the right data in the $whois object
      *
      * @return bool Is new contact was created succesfully or not
+     *
+     * @throws Api_Odr_Exception
      */
     public function createContact($whois, $type = HANDLE_OWNER)
     {
@@ -615,9 +612,12 @@ class opendomainregistry implements IRegistrar
 
         $legalForm = $this->_getLegalForm($whois, $prefix);
 
-        /**
-         * Step 1) Create the contact
-         */
+        $gender = 'NA';
+
+        if (in_array(strtoupper($whois->{$prefix . 'Sex'}), array('F', 'M'), true)) {
+            $gender = strtoupper($whois->{$prefix . 'Sex'}) === 'F' ? 'FEMALE' : 'MALE';
+        }
+
         $parameters = array(
             'first_name'              => $whois->{$prefix . 'Initials'},
             'last_name'               => $whois->{$prefix . 'SurName'},
@@ -631,11 +631,11 @@ class opendomainregistry implements IRegistrar
             'email'                   => $whois->{$prefix . 'EmailAddress'},
             'country'                 => $whois->{$prefix . 'Country'},
             'language'                => 'NL',
-            'gender'                  => (strtoupper($whois->{$prefix . 'Sex'}) === 'M' ? 'MALE' : (strtoupper($whois->{$prefix . 'Sex'}) === 'F' ? 'FEMALE' : 'NA')),
+            'gender'                  => $gender,
             'street'                  => $whois->{$prefix . 'StreetName'},
             'house_number'            => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
             //url
-            'company_name'            => ($whois->{$prefix . 'CompanyName'}) ?: $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},// We must give a name here (25-08-2015 ODR)
+            'company_name'            => ($whois->{$prefix . 'CompanyName'}) ?: $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},
             'company_email'           => $whois->{$prefix . 'EmailAddress'},
             'company_street'          => $whois->{$prefix . 'StreetName'},
             'company_house_number'    => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
@@ -647,7 +647,6 @@ class opendomainregistry implements IRegistrar
             'organization_legal_form' => $legalForm,
         );
 
-        // Calls
         $this->odr->createContact($parameters);
 
         $result = $this->odr->getResult();
@@ -659,7 +658,7 @@ class opendomainregistry implements IRegistrar
      * Update the whois information for the given contact person
      *
      * @param string $handle The handle of the contact to be changed
-     * @param whois  $whois  The new whois information for the given contact
+     * @param Whois  $whois  The new whois information for the given contact
      * @param mixed  $type   The of contact. This is used to access the right fields in the whois array
      *
      * @return bool
@@ -680,10 +679,6 @@ class opendomainregistry implements IRegistrar
 
         /**
          * Step 1) Update the contact, it can depend on the modified data which action you should take.
-         */
-
-        /**
-         * Step 1) Create the contact
          */
         $sex    = strtoupper($whois->{$prefix . 'Sex'});
         $gender = 'NA';
@@ -711,7 +706,7 @@ class opendomainregistry implements IRegistrar
             'street'                  => $whois->{$prefix . 'StreetName'},
             'house_number'            => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
             //url
-            'company_name'            => $whois->{$prefix . 'CompanyName'} ?: $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},// We must give a name here (25-08-2015 ODR)
+            'company_name'            => $whois->{$prefix . 'CompanyName'} ?: $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},
             'company_email'           => $whois->{$prefix . 'EmailAddress'},
             'company_street'          => $whois->{$prefix . 'StreetName'},
             'company_house_number'    => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
@@ -723,7 +718,6 @@ class opendomainregistry implements IRegistrar
             'organization_legal_form' => $legalForm,
         );
 
-        // Calls
         $this->odr->custom('/contact/' . $handle, Api_Odr::METHOD_PUT, $parameters);
 
         return $this->_checkResult(true, $loggedIn);
@@ -734,7 +728,7 @@ class opendomainregistry implements IRegistrar
      *
      * @param string $handle The handle of the contact to request
      *
-     * @return whois Information available about the requested contact
+     * @return Whois|bool Information available about the requested contact
      */
     public function getContact($handle)
     {
@@ -752,12 +746,11 @@ class opendomainregistry implements IRegistrar
          * Step 1) Create the contact
          */
         // Create the contact
-        $whois = new whois();
+        $whois = new Whois();
 
         /**
          * Step 1) Search for contact data
          */
-        // Calls
         try {
             $this->odr->getContact($handle);
         } catch (Api_Odr_Exception $e) {
@@ -768,13 +761,11 @@ class opendomainregistry implements IRegistrar
 
         $result = $this->odr->getResult();
 
-        // Logout
         $this->_checkLogout($loggedIn);
 
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
         }
-        die(var_dump($result));
 
         /**
          * Step 2) provide feedback to WeFact
@@ -802,12 +793,14 @@ class opendomainregistry implements IRegistrar
     /**
      * Get the handle of a contact
      *
-     * @param array $whois The whois information of contact
-     * @param string $type The type of person. This is used to access the right fields in the whois object
+     * @param Whois  $whois The whois information of contact
+     * @param string $type  The type of person. This is used to access the right fields in the whois object
      *
      * @return string handle of the requested contact; False if the contact could not be found
+     *
+     * @throws Api_Odr_Exception
      */
-    public function getContactHandle($whois = array(), $type = HANDLE_OWNER)
+    public function getContactHandle(Whois $whois, $type = HANDLE_OWNER)
     {
         $prefix = $this->_getContactPrefix($type);
 
@@ -828,17 +821,18 @@ class opendomainregistry implements IRegistrar
         foreach ($contacts as $contactId) {
             $contact = $this->getContact($contactId);
             
-            if (($whois->{$prefix . 'Initials'} === $contact->ownerInitials || str_replace('.', '', $whois->{$prefix . 'Initials'}) === $contact->ownerInitials) &&
+            if (
                 $whois->{$prefix . 'SurName'} === $contact->ownerSurName &&
                 $whois->{$prefix . 'CompanyName'} === $contact->ownerCompanyName &&
-                $whois->{$prefix . 'EmailAddress'} === $contact->ownerEmailAddress)
+                $whois->{$prefix . 'EmailAddress'} === $contact->ownerEmailAddress &&
+                ($whois->{$prefix . 'Initials'} === $contact->ownerInitials || str_replace('.', '', $whois->{$prefix . 'Initials'}) === $contact->ownerInitials)
+            )
             {
                 return $contactId;
             }
-          }
+        }
 
-        // No handle is found
-        return false;    
+        return false;
     }
 
     /**
@@ -847,6 +841,8 @@ class opendomainregistry implements IRegistrar
      * @param string $surname Surname to limit the number of records in the list
      *
      * @return array List of all contact matching the $surname search criteria
+     *
+     * @throws Api_Odr_Exception
      */
     public function getContactList($surname = '')
     {
@@ -856,9 +852,11 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $filter = array(
-            'full_name' => $surname,
-        );
+        $filter = array();
+
+        if ($surname) {
+            $filter['full_name'] = $surname;
+        }
 
         /**
          * Step 1) Search for contact data
@@ -933,12 +931,10 @@ class opendomainregistry implements IRegistrar
      *
      * @static
      */
-    static public function getVersionInformation()
+    public function getVersionInformation()
     {
         /** @var array $version */
-        require_once '3rdparty/domain/opendomainregistry/version.php';
-
-        return $version;
+        return include $this->_versionFile;
     }
 
     public function reset()
@@ -947,20 +943,10 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        // Configuration array, with user API Keys
-        $config = array(
-            'api_key'    => $this->User,
-            'api_secret' => $this->Password,
-            'url'        => $this->Testmode ? self::URL_TEST : self::URL_LIVE,
-        );
-
         // Force correct type of credentials
         if (strpos($this->User, 'public$') !== 0) {
             return $this->parseError('Vul de API key als gebruikersnaam in en de API secret als wachtwoord.');
         }
-
-        // Create new instance of API demo class
-        $this->odr = new Api_Odr($config);
 
         // Login into API
         try {
@@ -972,7 +958,7 @@ class opendomainregistry implements IRegistrar
                 return $this->parseError($loginResult['response'], $loginResult['code']);
             }
 
-            $this->AccessToken = $loginResult['response']['access_token'];
+            $this->AccessToken = $loginResult['response']['token'];
 
             return true;
         } catch(Api_Odr_Exception $e) {
@@ -985,8 +971,8 @@ class opendomainregistry implements IRegistrar
     /**
      * "Parses" the error message, prefixing it with "ODR: $code - $message"
      *
-     * @param string     $message Error message
-     * @param string|int $code    Error code
+     * @param string|array $message Error message
+     * @param string|int   $code    Error code
      *
      * @return bool
      */
@@ -1098,7 +1084,7 @@ class opendomainregistry implements IRegistrar
                     $prefix = 'owner';
                 break;
             case HANDLE_ADMIN:
-                    $prefix = 'onsite';
+                    $prefix = 'admin';
                 break;
             case HANDLE_TECH:
                     $prefix = 'tech';
@@ -1130,24 +1116,24 @@ class opendomainregistry implements IRegistrar
      * Obtains single handle for domain
      *
      * @param string $domain Domain name
-     * @param whois  $whois  Instance of "whois" class
+     * @param Whois  $whois  Instance of "whois" class
      * @param string $prefix Prefix (owner, admin, tech, etc)
      * @param string $key    Defined variable (HANDLE_OWNER, HANDLE_ADMIN, HANDLE_TECH, etc)
      *
      * @return bool|string
      *
+     * @throws Api_Odr_Exception
+     *
      * @protected
      */
-    protected function _obtainHandle($domain, whois $whois, $prefix, $key)
+    protected function _obtainHandle($domain, $whois, $prefix, $key)
     {
-        $handle = '';
-
         // Check if a registrar-specific ownerhandle for this domain already exists.
-        if (isset($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName])) {
+        if ($whois !== null && isset($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName])) {
             $handle = $whois->{$prefix . 'RegistrarHandles'}[$this->ClassName];
         }
         // If not, check if WHOIS-data for owner contact is available to search or create new handle
-        elseif ($whois->{$prefix . 'SurName'} != '') {
+        elseif ($whois !== null && $whois->{$prefix . 'SurName'} != '') {
             // Search for existing handle, based on WHOIS data
             $handle = $this->getContactHandle($whois, $key);
 
@@ -1169,14 +1155,14 @@ class opendomainregistry implements IRegistrar
     /**
      * Returns mapped legal form
      *
-     * @param whois  $whois  Instance of "whois" class
+     * @param Whois  $whois  Instance of "whois" class
      * @param string $prefix Prefix (owner, admin, tech, etc)
      *
      * @return string
      *
      * @protected
      */
-    protected function _getLegalForm(whois $whois, $prefix)
+    protected function _getLegalForm(Whois $whois, $prefix)
     {
         if (!$whois->{$prefix . 'CompanyName'}) {
             return 'PERSOON';

@@ -185,13 +185,21 @@ class Api_Odr
     /**
      * Return list of user's domains
      *
+     * @param array $filters Additional filters
+     *
      * @return Api_Odr
      *
      * @throws Api_Odr_Exception
      */
-    public function getDomains()
+    public function getDomains(array $filters = array())
     {
-        $this->_execute('/domain/', self::METHOD_GET);
+        $data = array();
+
+        if (!empty($filters)) {
+            $data['filter'] = $filters;
+        }
+
+        $this->_execute('/domain/', self::METHOD_GET, $data);
 
         return $this;
     }
@@ -259,13 +267,21 @@ class Api_Odr
     /**
      * Return list of user's contacts
      *
+     * @param array $filters Additional filters
+     *
      * @return Api_Odr
      *
      * @throws Api_Odr_Exception
      */
-    public function getContacts()
+    public function getContacts(array $filters = array())
     {
-        $this->_execute('/contact/', self::METHOD_GET);
+        $data = array();
+
+        if (!empty($filters)) {
+            $data['filter'] = $filters;
+        }
+
+        $this->_execute('/contact/', self::METHOD_GET, $data);
 
         return $this;
     }
@@ -390,6 +406,19 @@ class Api_Odr
     public function infoRegisterDomain($domainName)
     {
         return $this->info('/domain/'. $domainName .'/', self::METHOD_POST);
+    }
+
+    /**
+     * Changes autorenew state of domain
+     *
+     * @param string $domainName Domain name to change autorenew state
+     * @param bool   $state      Set autorenew on or off
+     *
+     * @return Api_Odr
+     */
+    public function setAutorenew($domainName, $state)
+    {
+        return $this->custom('/domain/' . $domainName . '/renew-' . ($state ? 'on' : 'off') .'/', Api_Odr::METHOD_PUT);
     }
 
     /**

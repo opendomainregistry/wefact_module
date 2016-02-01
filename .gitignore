@@ -1,6 +1,9 @@
 # Project
 vendor/
 composer.phar
+cache.properties
+temporary/build/
+build/
 
 # Source control
 /CVS/*

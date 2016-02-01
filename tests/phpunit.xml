@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit
+    bootstrap="./tests.php"
+    backupGlobals="false"
+    backupStaticAttributes="false"
+    beStrictAboutTestsThatDoNotTestAnything="true"
+    beStrictAboutOutputDuringTests="true"
+    beStrictAboutTestSize="true"
+    checkForUnintentionallyCoveredCode="true"
+    verbose="true"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    processIsolation="false"
+    stopOnFailure="false"
+    syntaxCheck="true"
+>
+    <logging>
+        <log type="coverage-html" target="./../temporary/build/coverage"/>
+        <log type="coverage-clover" target="./../temporary/build/logs/clover.xml"/>
+        <log type="coverage-crap4j" target="./../temporary/build/logs/crap4j.xml"/>
+        <log type="junit" target="./../temporary/build/logs/junit.xml" logIncompleteSkipped="false"/>
+    </logging>
+
+    <filter>
+        <whitelist>
+            <directory>./../opendomainregistry/</directory>
+        </whitelist>
+
+        <blacklist>
+            <directory>./../vendor/</directory>
+            <directory>./../temporary/</directory>
+            <directory>./../opendomainregistry/3rdparty/</directory>
+        </blacklist>
+    </filter>
+
+    <testsuite name="tmv-wefact-odr">
+        <directory>./Tests/*</directory>
+    </testsuite>
+</phpunit>

@@ -1,4 +1,6 @@
 <?php
+$version = array();
+
 $version['name']           = 'Open Domain Registry';
 $version['api_version']    = '3.2';
 $version['date']           = '2016-01-15';
@@ -10,6 +12,8 @@ $version['cancel_direct']  = true;
 $version['cancel_expire']  = true;
 $version['domain_support'] = true;
 $version['ssl_support']    = false;
+
+return $version;
 
 /**
  * Changelog
