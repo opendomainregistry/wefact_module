@@ -3,22 +3,8 @@ namespace Tests\Odr;
 
 use Tests\UnitTestCase;
 
-class SetDomainAutoRenewTest extends UnitTestCase
+class GetDomainWhoisTest extends UnitTestCase
 {
-    public function testTrue()
-    {
-        $wefact = $this->getModule();
-
-        self::assertTrue($wefact->setDomainAutoRenew('test.nl', true));
-    }
-
-    public function testFalse()
-    {
-        $wefact = $this->getModule();
-
-        self::assertTrue($wefact->setDomainAutoRenew('test.nl', false));
-    }
-
     public function testNotLoggedIn()
     {
         $wefact = $this->getModule();
@@ -27,12 +13,12 @@ class SetDomainAutoRenewTest extends UnitTestCase
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
-                'token'      => 'token$success',
+                'token'      => 'public$success',
                 'url'        => $wefact::URL_TEST,
             )
         );
 
-        self::assertFalse($wefact->setDomainAutoRenew('test.nl', false));
+        self::assertFalse($wefact->getDomainWhois('test.nl'));
     }
 
     public function testError()
@@ -48,7 +34,7 @@ class SetDomainAutoRenewTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->setDomainAutoRenew('test.nl', false));
+        self::assertFalse($wefact->getDomainWhois('test.nl'));
     }
 
     public function testException()
@@ -64,6 +50,19 @@ class SetDomainAutoRenewTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->setDomainAutoRenew('test.nl', false));
+        self::assertFalse($wefact->getDomainWhois('test.nl'));
+    }
+
+    public function testSuccess()
+    {
+        $wefact = $this->getModule();
+
+        $expected = array(
+            'ownerHandle' => 'XXX001',
+            'adminHandle' => 'XXX001',
+            'techHandle'  => null,
+        );
+
+        self::assertEquals($expected, $wefact->getDomainWhois('test.nl'));
     }
 }

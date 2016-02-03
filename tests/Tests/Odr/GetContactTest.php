@@ -20,7 +20,39 @@ class GetContactTest extends UnitTestCase
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
-                'token'      => 'token$failure',
+                'token'      => 'public$success',
+                'url'        => $wefact::URL_TEST,
+            )
+        );
+
+        self::assertFalse($wefact->getContact(1));
+    }
+
+    public function testError()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'    => 'public$success',
+                'api_secret' => 'secret$success',
+                'token'      => 'public$failure',
+                'url'        => $wefact::URL_TEST,
+            )
+        );
+
+        self::assertFalse($wefact->getContact(1));
+    }
+
+    public function testException()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'    => 'public$success',
+                'api_secret' => 'secret$success',
+                'token'      => 'token$thrown',
                 'url'        => $wefact::URL_TEST,
             )
         );

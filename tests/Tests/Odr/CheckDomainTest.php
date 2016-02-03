@@ -13,7 +13,7 @@ class CheckDomainTest extends UnitTestCase
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
-                'token'      => 'token$failure',
+                'token'      => 'public$success',
                 'url'        => $wefact::URL_TEST,
             )
         );

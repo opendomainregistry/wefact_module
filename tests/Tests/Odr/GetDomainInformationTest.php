@@ -13,11 +13,69 @@ class GetDomainInformationTest extends UnitTestCase
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
+                'token'      => 'public$success',
+                'url'        => $wefact::URL_TEST,
+            )
+        );
+
+        self::assertFalse($wefact->getDomainInformation('test.nl'));
+    }
+
+    public function testError()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'    => 'public$success',
+                'api_secret' => 'secret$success',
                 'token'      => 'token$failure',
                 'url'        => $wefact::URL_TEST,
             )
         );
 
         self::assertFalse($wefact->getDomainInformation('test.nl'));
+    }
+
+    public function testException()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'    => 'public$success',
+                'api_secret' => 'secret$success',
+                'token'      => 'token$thrown',
+                'url'        => $wefact::URL_TEST,
+            )
+        );
+
+        self::assertFalse($wefact->getDomainInformation('test.nl'));
+    }
+
+    public function testSuccess()
+    {
+        $wefact = $this->getModule();
+
+        $whois = $wefact->getContact(24);
+
+        $whois->adminHandle = 32;
+        $whois->techHandle  = null;
+
+        $expected = array(
+            'Domain'      => 'test.nl',
+            'Information' => array(
+                'nameservers'       => array(
+                    'ns1.test.ru',
+                    'ns2.test.ru',
+                ),
+                'whois'             => $whois,
+                'expiration_date'   => date('Y') + 1 . '-01-01',
+                'registration_date' => '',
+                'authkey'           => 'TEST1221TSET',
+            ),
+        );
+
+        self::assertEquals($expected, $wefact->getDomainInformation('test.nl'));
     }
 }

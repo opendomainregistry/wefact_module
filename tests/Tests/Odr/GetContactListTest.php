@@ -3,22 +3,8 @@ namespace Tests\Odr;
 
 use Tests\UnitTestCase;
 
-class SetDomainAutoRenewTest extends UnitTestCase
+class GetContactListTest extends UnitTestCase
 {
-    public function testTrue()
-    {
-        $wefact = $this->getModule();
-
-        self::assertTrue($wefact->setDomainAutoRenew('test.nl', true));
-    }
-
-    public function testFalse()
-    {
-        $wefact = $this->getModule();
-
-        self::assertTrue($wefact->setDomainAutoRenew('test.nl', false));
-    }
-
     public function testNotLoggedIn()
     {
         $wefact = $this->getModule();
@@ -32,7 +18,7 @@ class SetDomainAutoRenewTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->setDomainAutoRenew('test.nl', false));
+        self::assertFalse($wefact->getContactList());
     }
 
     public function testError()
@@ -48,7 +34,7 @@ class SetDomainAutoRenewTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->setDomainAutoRenew('test.nl', false));
+        self::assertFalse($wefact->getContactList());
     }
 
     public function testException()
@@ -64,6 +50,24 @@ class SetDomainAutoRenewTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->setDomainAutoRenew('test.nl', false));
+        self::assertFalse($wefact->getContactList());
+    }
+
+    public function testSuccess()
+    {
+        $wefact = $this->getModule();
+
+        $expected = array(
+            array(
+                'Handle'      => 8,
+                'CompanyName' => 'T Testov',
+            ),
+            array(
+                'Handle'      => 9,
+                'CompanyName' => 'Gooble Super Mega Company, Test Division',
+            ),
+        );
+
+        self::assertEquals($expected, $wefact->getContactList('test'));
     }
 }

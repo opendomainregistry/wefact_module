@@ -2,6 +2,5 @@ default:
     failure: average.maintainabilityIndex < 50 or sum.loc > 10000
 
     path:
-        directory: apps
+        directory: opendomainregistry
         extensions: php
-        exclude: migrations

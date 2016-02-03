@@ -108,19 +108,19 @@ class opendomainregistry implements IRegistrar
 
         $tld = substr(stristr($domain, '.'), 1);
 
-        $ownerHandle = $this->_obtainHandle($domain, $whois, 'owner', HANDLE_OWNER);
+        $ownerHandle = $this->_obtainHandle($domain, $whois, HANDLE_OWNER);
 
         if (!$ownerHandle) {
             return $ownerHandle;
         }
 
-        $adminHandle = $this->_obtainHandle($domain, $whois, 'admin', HANDLE_ADMIN);
+        $adminHandle = $this->_obtainHandle($domain, $whois, HANDLE_ADMIN);
 
         if (!$adminHandle) {
             return $adminHandle;
         }
 
-        $techHandle = $this->_obtainHandle($domain, $whois, 'tech', HANDLE_TECH);
+        $techHandle = $this->_obtainHandle($domain, $whois, HANDLE_TECH);
 
         if (!$techHandle) {
             return $techHandle;
@@ -142,13 +142,13 @@ class opendomainregistry implements IRegistrar
 
         try {
             $this->odr->registerDomain($domain, $parameters);
-
-            return $this->_checkResult(true, $loggedIn);
         } catch(Api_Odr_Exception $e) {
             $this->Error[] = $e->getMessage();
 
             return false;
         }
+
+        return $this->_checkResult(true, $loggedIn);
     }
 
     /**
@@ -173,38 +173,26 @@ class opendomainregistry implements IRegistrar
 
         $tld = substr(stristr($domain, '.'), 1);
 
-        /**
-         * Step 1) obtain an owner handle
-         */
-        $ownerHandle = $this->_obtainHandle($domain, $whois, 'owner', HANDLE_OWNER);
+        $ownerHandle = $this->_obtainHandle($domain, $whois, HANDLE_OWNER);
 
         if (!$ownerHandle) {
             return $ownerHandle;
         }
 
-        $adminHandle = $this->_obtainHandle($domain, $whois, 'admin', HANDLE_ADMIN);
+        $adminHandle = $this->_obtainHandle($domain, $whois, HANDLE_ADMIN);
 
         if (!$adminHandle) {
             return $adminHandle;
         }
 
-        $techHandle = $this->_obtainHandle($domain, $whois, 'tech', HANDLE_TECH);
+        $techHandle = $this->_obtainHandle($domain, $whois, HANDLE_TECH);
 
         if (!$techHandle) {
             return $techHandle;
         }
 
-        /**
-         * Step 5) check your own default settings
-         */
-        // Determine period for registration in years, based on your TLD
-        // $this->Period is also used in WeFact, for determining the renewal date
         $this->_checkPeriod($tld);
 
-        /**
-         * Step 6) register domain
-         */
-        // Start registering the domain, you can use $domain, $ownerHandle, $adminHandle, $techHandle, $nameservers
         $parameters = array(
             'contact_registrant' => $ownerHandle,
             'contact_tech'       => $techHandle,
@@ -214,7 +202,13 @@ class opendomainregistry implements IRegistrar
 
         $parameters = array_merge($parameters, $nameservers);
 
-        $this->odr->transferDomain($domain, $parameters);
+        try {
+            $this->odr->transferDomain($domain, $parameters);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
+
+            return false;
+        }
 
         return $this->_checkResult(true, $loggedIn);
     }
@@ -235,10 +229,16 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $delete_date = time();
+        $deleteDate = time();
 
         if ($delType === 'end') {
-            $this->odr->custom('/domain/info/' . $domain);
+            try {
+                $this->odr->getDomainInfo($domain);
+            } catch (Api_Odr_Exception $e) {
+                $this->Error[] = $e->getMessage();
+
+                return false;
+            }
 
             $result = $this->odr->getResult();
 
@@ -246,17 +246,18 @@ class opendomainregistry implements IRegistrar
                 return $this->parseError($result['response']);
             }
 
-            $delete_date = strtotime('-2 days', strtotime($result['response']['expiration_date']));
+            $deleteDate = strtotime('-2 days', strtotime($result['response']['expiration_date']));
         }
 
-        // Date must be in future
-        $delete_date = max($delete_date, strtotime('+2 hours'));
+        $deleteDate = max($deleteDate, strtotime('+2 hours'));
 
-        // Overwrite setting
-        $parameters = array('deleted_at' => date('c', $delete_date));
+        try {
+            $this->odr->deleteDomain($domain, date('c', $deleteDate));
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
 
-        // Calls
-        $this->odr->custom('/domain/' . $domain .'/', Api_Odr::METHOD_DELETE, $parameters);
+            return false;
+        }
 
         return $this->_checkResult(true, $loggedIn);
     }
@@ -276,10 +277,13 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        /**
-         * Step 1) update nameservers for domain
-         */
-        $this->odr->custom('/domain/info/' . $domain);
+        try {
+            $this->odr->getDomainInfo($domain);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
+
+            return false;
+        }
 
         $result = $this->odr->getResult();
 
@@ -292,19 +296,19 @@ class opendomainregistry implements IRegistrar
         $nameservers = array();
 
         foreach ($result['response'] as $k => $v) {
-            if (strpos($k, 'ns') !== 0) {
+            if ($v === null || strpos($k, 'ns') !== 0) {
                 continue;
             }
 
             $nameservers[] = is_array($v) ? $v['host'] : $v;
         }
 
-        $whois = $this->getContact($result['response']['contact_registrant']);
+        $whois = $this->getContact($result['response']['contacts_map']['REGISTRANT']);
 
-        $whois->adminHandle = $result['response']['contact_onsite'];
-        $whois->techHandle  = $result['response']['contact_tech'];
+        $whois->adminHandle = $result['response']['contacts_map']['ONSITE'];
+        $whois->techHandle  = !empty($result['response']['contacts_map']['TECH']) ? $result['response']['contacts_map']['TECH'] : null;
 
-        $authkey         = $result['response']['auth_code'];
+        $authkey         = empty($result['response']['auth_code']) ? null : $result['response']['auth_code'];
         $expiration_date = date('Y-m-d', strtotime($result['response']['expiration_date']));
 
         return array(
@@ -399,7 +403,13 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $this->odr->setAutorenew($domain, $autorenew);
+        try {
+            $this->odr->setAutorenew($domain, $autorenew);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
+
+            return false;
+        }
 
         $result = $this->odr->getResult();
 
@@ -418,7 +428,7 @@ class opendomainregistry implements IRegistrar
      *
      * @param mixed $domain Domain name
      *
-     * @return null|string
+     * @return null|string|bool
      */
     public function getToken($domain)
     {
@@ -426,7 +436,13 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $this->odr->custom('/domain/auth-code/' . $domain);
+        try {
+            $this->odr->getDomainAuthCode($domain);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
+
+            return false;
+        }
 
         $result = $this->odr->getResult();
 
@@ -434,7 +450,7 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']);
         }
 
-        return $result['response']['auth_code'];
+        return empty($result['response']['auth_code']) ? null : $result['response']['auth_code'];
     }
 
     /**
@@ -446,28 +462,23 @@ class opendomainregistry implements IRegistrar
      */
     public function getSyncData($domains)
     {
-        /**
-         * Scenario 2: We must request the info per domain. Take care of script timeout
-         */
         $limit   = 10;
         $checked = 0;
 
-        // Check domain one for one
         foreach ($domains as $domain => $value) {
-            // Ask registrar for information of domain
             $data = $this->getDomainInformation($domain);
 
             if ($data === false) {
                 $domains[$domain]['Status']    = 'error';
-                $domains[$domain]['Error_msg'] = 'Domain not found';
+                $domains[$domain]['Error_msg'] = 'Either domain not found or internal error happened';
 
                 continue;
             }
 
-            // extend the list_domains array with data from the registrar
-            $domains[$domain]['Information']['nameservers']        = $data['Information']['nameservers'];
-            $domains[$domain]['Information']['expiration_date']    = (isset($data['Information']['expiration_date'])) ? $data['Information']['expiration_date'] : '';
-            $domains[$domain]['Information']['auto_renew']         = '';
+            /** @var array $data Because PHPStorm */
+            $domains[$domain]['Information']['nameservers']     = $data['Information']['nameservers'];
+            $domains[$domain]['Information']['expiration_date'] = (isset($data['Information']['expiration_date'])) ? $data['Information']['expiration_date'] : '';
+            $domains[$domain]['Information']['auto_renew']      = '';
 
             $domains[$domain]['Status'] = 'success';
 
@@ -503,19 +514,19 @@ class opendomainregistry implements IRegistrar
         /**
          * Step 1) obtain an owner handle
          */
-        $ownerHandle = $this->_obtainHandle($domain, $whois, 'owner', HANDLE_OWNER);
+        $ownerHandle = $this->_obtainHandle($domain, $whois, HANDLE_OWNER);
 
         if (!$ownerHandle) {
             return $ownerHandle;
         }
 
-        $adminHandle = $this->_obtainHandle($domain, $whois, 'admin', HANDLE_ADMIN);
+        $adminHandle = $this->_obtainHandle($domain, $whois, HANDLE_ADMIN);
 
         if (!$adminHandle) {
             return $adminHandle;
         }
 
-        $techHandle = $this->_obtainHandle($domain, $whois, 'tech', HANDLE_TECH);
+        $techHandle = $this->_obtainHandle($domain, $whois, HANDLE_TECH);
 
         if (!$techHandle) {
             return $techHandle;
@@ -555,7 +566,7 @@ class opendomainregistry implements IRegistrar
      *
      * @param mixed $domain Domain name
      *
-     * @return array Domain info with handles
+     * @return array|bool Domain info with handles
      *
      * @throws Api_Odr_Exception
      */
@@ -567,7 +578,13 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $this->odr->custom('/domain/info/' . $domain);
+        try {
+            $this->odr->getDomainInfo($domain);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
+
+            return false;
+        }
 
         $result = $this->odr->getResult();
 
@@ -577,11 +594,11 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']);
         }
 
-        $contacts = array();
-
-        $contacts['ownerHandle'] = $result['response']['contact_registrant'];
-        $contacts['adminHandle'] = $result['response']['contact_onsite'];
-        $contacts['techHandle']  = $result['response']['contact_tech'];
+        $contacts = array(
+            'ownerHandle' => $result['response']['contacts']['REGISTRANT'],
+            'adminHandle' => $result['response']['contacts']['ONSITE'],
+            'techHandle'  => empty($result['response']['contacts']['TECH']) ? null : $result['response']['contacts']['TECH'],
+        );
 
         return $contacts;
     }
@@ -771,21 +788,21 @@ class opendomainregistry implements IRegistrar
          * Step 2) provide feedback to WeFact
          */
         // The contact is found
-        $whois->ownerCompanyName      = ($result['response']['contact']['full_name'] !== $result['response']['contact']['company_name']) ? $result['response']['contact']['company_name'] : '';
-        $whois->ownerTaxNumber        = $result['response']['contact']['company_vatin'];
-        $whois->ownerCompanyLegalForm = $result['response']['contact']['organization_legal_form'];
+        $whois->ownerCompanyName      = $result['response']['organization_legal_form'] === 'PERSOON' ? $result['response']['full_name'] : $result['response']['company_name'];
+        $whois->ownerTaxNumber        = empty($result['response']['company_vatin']) ? null : $result['response']['company_vatin'];
+        $whois->ownerCompanyLegalForm = $result['response']['organization_legal_form'];
 
-        $whois->ownerSex      = ($result['response']['contact']['gender'] === 'FEMALE' ? 'f' : 'm');
-        $whois->ownerInitials = $result['response']['contact']['first_name'];
-        $whois->ownerSurName  = $result['response']['contact']['last_name'];
-        $whois->ownerAddress  = $result['response']['contact']['street'] . ' ' . $result['response']['contact']['house_number'];
-        $whois->ownerZipCode  = $result['response']['contact']['postal_code'];
-        $whois->ownerCity     = $result['response']['contact']['city'];
+        $whois->ownerSex      = ($result['response']['gender'] === 'FEMALE' ? 'f' : 'm');
+        $whois->ownerInitials = $result['response']['initials'];
+        $whois->ownerSurName  = $result['response']['last_name'];
+        $whois->ownerAddress  = $result['response']['street'] . ' ' . $result['response']['house_number'];
+        $whois->ownerZipCode  = $result['response']['postal_code'];
+        $whois->ownerCity     = $result['response']['city'];
 
-        $whois->ownerCountry      = $result['response']['contact']['country'];
-        $whois->ownerPhoneNumber  = $result['response']['contact']['phone'];
-        $whois->ownerFaxNumber    = $result['response']['contact']['fax'];
-        $whois->ownerEmailAddress = $result['response']['contact']['email'];
+        $whois->ownerCountry      = $result['response']['country'];
+        $whois->ownerPhoneNumber  = $result['response']['phone'];
+        $whois->ownerFaxNumber    = $result['response']['fax'];
+        $whois->ownerEmailAddress = $result['response']['email'];
 
         return $whois;
     }
@@ -804,11 +821,12 @@ class opendomainregistry implements IRegistrar
     {
         $prefix = $this->_getContactPrefix($type);
 
-        /**
-         * Step 1) Search for contact data
-         */
         $contacts = $this->getContactList($whois->{$prefix . 'SurName'});
         $toCheck  = array();
+
+        if (empty($contacts)) {
+            return false;
+        }
 
         foreach ($contacts as $contact) {
             if ($contact['CompanyName'] === trim($whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'})) {
@@ -820,12 +838,12 @@ class opendomainregistry implements IRegistrar
         
         foreach ($contacts as $contactId) {
             $contact = $this->getContact($contactId);
-            
+
             if (
-                $whois->{$prefix . 'SurName'} === $contact->ownerSurName &&
-                $whois->{$prefix . 'CompanyName'} === $contact->ownerCompanyName &&
-                $whois->{$prefix . 'EmailAddress'} === $contact->ownerEmailAddress &&
-                ($whois->{$prefix . 'Initials'} === $contact->ownerInitials || str_replace('.', '', $whois->{$prefix . 'Initials'}) === $contact->ownerInitials)
+                $whois->{$prefix . 'SurName'} === $contact->{$prefix . 'SurName'} &&
+                $whois->{$prefix . 'CompanyName'} === $contact->{$prefix . 'CompanyName'} &&
+                $whois->{$prefix . 'EmailAddress'} === $contact->{$prefix . 'EmailAddress'} &&
+                ($whois->{$prefix . 'Initials'} === $contact->{$prefix . 'Initials'} || str_replace('.', '', $whois->{$prefix . 'Initials'}) === $contact->{$prefix . 'Initials'})
             )
             {
                 return $contactId;
@@ -840,7 +858,7 @@ class opendomainregistry implements IRegistrar
      *
      * @param string $surname Surname to limit the number of records in the list
      *
-     * @return array List of all contact matching the $surname search criteria
+     * @return array|bool List of all contact matching the $surname search criteria
      *
      * @throws Api_Odr_Exception
      */
@@ -858,11 +876,13 @@ class opendomainregistry implements IRegistrar
             $filter['full_name'] = $surname;
         }
 
-        /**
-         * Step 1) Search for contact data
-         */
-        // Calls
-        $this->odr->getContacts($filter);
+        try {
+            $this->odr->getContacts($filter);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
+
+            return false;
+        }
 
         $result = $this->odr->getResult();
 
@@ -877,7 +897,7 @@ class opendomainregistry implements IRegistrar
         foreach ($result['response'] as $contact) {
             $contacts[] = array(
                 'Handle'      => $contact['id'],
-                'CompanyName' => $contact['name'],
+                'CompanyName' => $contact['organization_legal_form'] === 'PERSOON' ? $contact['full_name'] : $contact['company_name'],
             );
         }
 
@@ -894,8 +914,6 @@ class opendomainregistry implements IRegistrar
      * @param array  $nameservers The new set of nameservers
      *
      * @return bool Was update successful or not
-     *
-     * @throws Api_Odr_Exception
      */
     public function updateNameServers($domain, $nameservers = array())
     {
@@ -905,10 +923,13 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        /**
-         * Step 1) update nameservers for domain
-         */
-        $this->odr->custom('/domain/info/' . $domain);
+        try {
+            $this->odr->getDomainInfo('/domain/info/' . $domain);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
+
+            return false;
+        }
 
         $result = $this->odr->getResult();
 
@@ -918,8 +939,13 @@ class opendomainregistry implements IRegistrar
 
         $parameters = array_merge($result['response'], $nameservers);
 
-        // Calls
-        $this->odr->updateDomain($domain, $parameters);
+        try {
+            $this->odr->updateDomain($domain, $parameters);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
+
+            return false;
+        }
 
         return $this->_checkResult(true, $loggedIn);
     }
@@ -1026,25 +1052,25 @@ class opendomainregistry implements IRegistrar
     {
         $result = $this->odr->getResult();
 
-        // Logout
         $this->_checkLogout($isLogout);
 
-        // Build response
-        if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
-            if ($result['data'] && is_array($result['data'])) {
-                $error_msg = array();
-
-                foreach ($result['data'] as $_field => $_err) {
-                    $error_msg[] = '[' . $_field . '] ' . $_err;
-                }
-
-                $result['response'] .= ': ' . implode(', ', $error_msg);
-            }
-
-            return $this->parseError($result['response']);
+        if ($result['status'] === Api_Odr::STATUS_SUCCESS) {
+            return $value;
         }
 
-        return $value;
+        if (empty($result['response']['data']) || !is_array($result['response']['data'])) {
+            return $this->parseError($result['response']['message']);
+        }
+
+        $error = array();
+
+        foreach ($result['response']['data'] as $_field => $_err) {
+            $error[] = '[' . $_field . '] ' . $_err;
+        }
+
+        $result['response']['message'] .= ': ' . implode(', ', $error);
+
+        return $this->parseError($result['response']['message']);
     }
 
     /**
@@ -1117,7 +1143,6 @@ class opendomainregistry implements IRegistrar
      *
      * @param string $domain Domain name
      * @param Whois  $whois  Instance of "whois" class
-     * @param string $prefix Prefix (owner, admin, tech, etc)
      * @param string $key    Defined variable (HANDLE_OWNER, HANDLE_ADMIN, HANDLE_TECH, etc)
      *
      * @return bool|string
@@ -1126,8 +1151,10 @@ class opendomainregistry implements IRegistrar
      *
      * @protected
      */
-    protected function _obtainHandle($domain, $whois, $prefix, $key)
+    protected function _obtainHandle($domain, $whois, $key)
     {
+        $prefix = $this->_getContactPrefix($key);
+
         // Check if a registrar-specific ownerhandle for this domain already exists.
         if ($whois !== null && isset($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName])) {
             $handle = $whois->{$prefix . 'RegistrarHandles'}[$this->ClassName];

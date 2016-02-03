@@ -199,9 +199,7 @@ class Api_Odr
             $data['filter'] = $filters;
         }
 
-        $this->_execute('/domain/', self::METHOD_GET, $data);
-
-        return $this;
+        return $this->_execute('/domain/', self::METHOD_GET, $data);
     }
 
     /**
@@ -225,9 +223,25 @@ class Api_Odr
             throw new Api_Odr_Exception('Domain name is required for this operation');
         }
 
-        $this->_execute('/domain/available/'. $domain .'/', self::METHOD_GET);
+        return $this->_execute('/domain/'. $domain .'/available/', self::METHOD_GET);
+    }
 
-        return $this;
+    public function deleteDomain($domain, $deleteAt)
+    {
+        $data = $deleteAt;
+
+        if (!is_array($deleteAt)) {
+            $data = array(
+                'deleted_at' => date('c', strtotime($deleteAt)),
+            );
+        }
+
+        return $this->_execute('/domain/' . $domain .'/', Api_Odr::METHOD_DELETE, $data);
+    }
+
+    public function getDomainInfo($domain)
+    {
+        return $this->custom('/domain/' . $domain . '/info/');
     }
 
     /**
@@ -242,9 +256,7 @@ class Api_Odr
      */
     public function updateDomain($id, array $data = array())
     {
-        $this->_execute('/domain/'. trim($id) .'/', self::METHOD_PUT, $data);
-
-        return $this;
+        return $this->_execute('/domain/'. trim($id) .'/', self::METHOD_PUT, $data);
     }
 
     /**
@@ -259,9 +271,7 @@ class Api_Odr
      */
     public function transferDomain($id, array $data = array())
     {
-        $this->_execute('/domain/'. trim($id) .'/transfer/', self::METHOD_PUT, $data);
-
-        return $this;
+        return $this->_execute('/domain/'. trim($id) .'/transfer/', self::METHOD_PUT, $data);
     }
 
     /**
@@ -281,33 +291,31 @@ class Api_Odr
             $data['filter'] = $filters;
         }
 
-        $this->_execute('/contact/', self::METHOD_GET, $data);
-
-        return $this;
+        return $this->_execute('/contact/', self::METHOD_GET, $data);
     }
 
     /**
      * Get information about single contact
      *
-     * @param int $contactId Contact ID
+     * @param int $id Contact ID
      *
      * @return Api_Odr
      *
      * @throws Api_Odr_Exception
      */
-    public function getContact($contactId)
+    public function getContact($id)
     {
-        if (!is_numeric($contactId)) {
+        if (!is_numeric($id)) {
             throw new Api_Odr_Exception('Contact ID must be numeric');
         }
 
-        $contactId = (int)$contactId;
+        $id = (int)$id;
 
-        if ($contactId <= 0) {
+        if ($id <= 0) {
             throw new Api_Odr_Exception('Contact ID must be a positive number');
         }
 
-        $this->_execute('/contact/'. $contactId .'/', self::METHOD_GET);
+        $this->_execute('/contact/'. $id .'/', self::METHOD_GET);
 
         return $this;
     }
@@ -345,7 +353,7 @@ class Api_Odr
      *
      * @throws Api_Odr_Exception
      */
-    public function registerDomain($domainName, array $data)
+    public function registerDomain($domainName, array $data = array())
     {
         if (is_array($domainName) && count($data) === 0) {
             $data       = $domainName;
@@ -406,6 +414,11 @@ class Api_Odr
     public function infoRegisterDomain($domainName)
     {
         return $this->info('/domain/'. $domainName .'/', self::METHOD_POST);
+    }
+
+    public function getDomainAuthCode($domain)
+    {
+        return $this->_execute('/domain/auth-code/' . $domain);
     }
 
     /**

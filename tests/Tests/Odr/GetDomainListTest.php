@@ -13,7 +13,7 @@ class GetDomainListTest extends UnitTestCase
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
-                'token'      => 'token$failure',
+                'token'      => 'token$success',
                 'url'        => $wefact::URL_TEST,
             )
         );
