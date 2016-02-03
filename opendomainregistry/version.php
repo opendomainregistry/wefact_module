@@ -6,12 +6,22 @@ $version['api_version']    = '3.2';
 $version['date']           = '2016-01-15';
 $version['wefact_version'] = '3.8';
 
+$version['dev_logo']    = 'http://www.opendomainregistry.net/assets/img/frontend/logotype.png';
+$version['dev_author']  = 'Open Domain Registry';
+$version['dev_website'] = 'https://www.opendomainregistry.net';
+$version['dev_email']   = 'support@opendomainregistry.net';
+$version['dev_phone']   = '+31 (0) 165 318788';
+
 $version['autorenew']      = true;
 $version['handle_support'] = true;
 $version['cancel_direct']  = true;
 $version['cancel_expire']  = true;
 $version['domain_support'] = true;
 $version['ssl_support']    = false;
+
+$version['dns_management_support'] = false;
+$version['dns_templates_support']  = false;
+$version['dns_records_support']    = false;
 
 return $version;
 

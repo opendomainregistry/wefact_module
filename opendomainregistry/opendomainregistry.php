@@ -319,6 +319,7 @@ class opendomainregistry implements IRegistrar
                 'expiration_date'   => $expiration_date,
                 'registration_date' => '',
                 'authkey'           => $authkey,
+                'auto_renew'        => empty($result['response']['autorenew']) ? '' : strtolower($result['response']['autorenew']),
             ),
         );
     }
@@ -456,38 +457,44 @@ class opendomainregistry implements IRegistrar
     /**
      * Check domain information for one or more domains
      *
-     * @param mixed $domains Array with list of domains. Key is domain, value must be filled
+     * @param array $domains Array with list of domains. Key is domain, value must be filled
      *
-     * @return mixed $list_domains
+     * @return array
      */
     public function getSyncData($domains)
     {
         $limit   = 10;
         $checked = 0;
 
-        foreach ($domains as $domain => $value) {
+        foreach ($domains as $domain => &$value) {
             $data = $this->getDomainInformation($domain);
 
             if ($data === false) {
-                $domains[$domain]['Status']    = 'error';
-                $domains[$domain]['Error_msg'] = 'Either domain not found or internal error happened';
+                $value['Status']    = 'error';
+                $value['Error_msg'] = 'Either domain not found or internal error happened';
 
                 continue;
             }
-
-            /** @var array $data Because PHPStorm */
-            $domains[$domain]['Information']['nameservers']     = $data['Information']['nameservers'];
-            $domains[$domain]['Information']['expiration_date'] = (isset($data['Information']['expiration_date'])) ? $data['Information']['expiration_date'] : '';
-            $domains[$domain]['Information']['auto_renew']      = '';
-
-            $domains[$domain]['Status'] = 'success';
 
             $checked++;
 
             if ($limit !== null && $checked > $limit) {
                 break;
             }
+
+            /** @var array $data  Because PHPStorm */
+            /** @var array $value Because PHPStorm */
+
+            $value = $data;
+
+            $value['Information']['nameservers']     = $data['Information']['nameservers'];
+            $value['Information']['expiration_date'] = (isset($data['Information']['expiration_date'])) ? $data['Information']['expiration_date'] : '';
+            $value['Information']['auto_renew']      = empty($data['Information']['auto_renew']) ? '' : $data['Information']['auto_renew'];
+
+            $value['Status'] = 'success';
         }
+
+        unset($value);
 
         // Return list  (domains which aren't completed with data, will be synced by a next cronjob)
         return $domains;
@@ -511,28 +518,31 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        /**
-         * Step 1) obtain an owner handle
-         */
         $ownerHandle = $this->_obtainHandle($domain, $whois, HANDLE_OWNER);
 
         if (!$ownerHandle) {
-            return $ownerHandle;
+            return false;
         }
 
         $adminHandle = $this->_obtainHandle($domain, $whois, HANDLE_ADMIN);
 
         if (!$adminHandle) {
-            return $adminHandle;
+            return false;
         }
 
         $techHandle = $this->_obtainHandle($domain, $whois, HANDLE_TECH);
 
         if (!$techHandle) {
-            return $techHandle;
+            return false;
         }
 
-        $this->odr->custom('/domain/info/' . $domain);
+        try {
+            $this->odr->getDomainInfo($domain);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
+
+            return false;
+        }
 
         $result = $this->odr->getResult();
 
@@ -542,23 +552,19 @@ class opendomainregistry implements IRegistrar
 
         $parameters = $result['response'];
 
-        // Overwrite setting
         $parameters['contact_registrant'] = $ownerHandle;
         $parameters['contact_tech']       = $techHandle;
         $parameters['contact_onsite']     = $adminHandle;
 
-        $this->odr->updateDomain($domain, $parameters);
+        try {
+            $this->odr->updateDomain($domain, $parameters);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
 
-        $result = $this->odr->getResult();
-
-        $this->_checkLogout($loggedIn);
-
-        // Build response
-        if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
-            return $this->parseError($result['response']);
+            return false;
         }
 
-        return true;
+        return $this->_checkResult(true, $loggedIn);
     }
 
     /**
@@ -621,50 +627,15 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $prefix = $this->_getContactPrefix($type);
+        $contact = $this->mapWhoisToContact($whois, $type);
 
-        // Some help-functions, to obtain more formatted data
-        $whois->getParam($prefix, 'StreetName');  // Not only Address, but also StreetName, StreetNumber and StreetNumberAddon are available after calling this function
-        $whois->getParam($prefix, 'CountryCode'); // Phone and faxnumber are split. CountryCode, PhoneNumber and FaxNumber available. CountryCode contains for example '+31'. PhoneNumber contains number without leading zero e.g. '123456789'
+        try {
+            $this->odr->createContact($contact);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
 
-        $legalForm = $this->_getLegalForm($whois, $prefix);
-
-        $gender = 'NA';
-
-        if (in_array(strtoupper($whois->{$prefix . 'Sex'}), array('F', 'M'), true)) {
-            $gender = strtoupper($whois->{$prefix . 'Sex'}) === 'F' ? 'FEMALE' : 'MALE';
+            return false;
         }
-
-        $parameters = array(
-            'first_name'              => $whois->{$prefix . 'Initials'},
-            'last_name'               => $whois->{$prefix . 'SurName'},
-            'full_name'               => $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},
-            'initials'                => $whois->{$prefix . 'Initials'},
-            //birthday
-            //state
-            'city'                    => $whois->{$prefix . 'City'},
-            'postal_code'             => strtoupper(str_replace(' ', '', $whois->{$prefix . 'ZipCode'})),
-            'phone'                   => $whois->{$prefix . 'CountryCode'} . '.' . str_replace(' ', '', $whois->{$prefix . 'PhoneNumber'}),
-            'email'                   => $whois->{$prefix . 'EmailAddress'},
-            'country'                 => $whois->{$prefix . 'Country'},
-            'language'                => 'NL',
-            'gender'                  => $gender,
-            'street'                  => $whois->{$prefix . 'StreetName'},
-            'house_number'            => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
-            //url
-            'company_name'            => ($whois->{$prefix . 'CompanyName'}) ?: $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},
-            'company_email'           => $whois->{$prefix . 'EmailAddress'},
-            'company_street'          => $whois->{$prefix . 'StreetName'},
-            'company_house_number'    => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
-            'company_postal_code'     => strtoupper(str_replace(' ', '', $whois->{$prefix . 'ZipCode'})),
-            'company_city'            => $whois->{$prefix . 'City'},
-            'company_phone'           => $whois->{$prefix . 'CountryCode'} . '.' . str_replace(' ', '', $whois->{$prefix . 'PhoneNumber'}),
-            //company_url
-            'company_vatin'           => $whois->{$prefix . 'TaxNumber'},
-            'organization_legal_form' => $legalForm,
-        );
-
-        $this->odr->createContact($parameters);
 
         $result = $this->odr->getResult();
 
@@ -688,54 +659,15 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $prefix = $this->_getContactPrefix($type);
+        $contact = $this->mapWhoisToContact($whois, $type);
 
-        // Some help-functions, to obtain more formatted data
-        $whois->getParam($prefix, 'StreetName');  // Not only Address, but also StreetName, StreetNumber and StreetNumberAddon are available after calling this function
-        $whois->getParam($prefix, 'CountryCode'); // Phone and faxnumber are split. CountryCode, PhoneNumber and FaxNumber available. CountryCode contains for example '+31'. PhoneNumber contains number without leading zero e.g. '123456789'
+        try {
+            $this->odr->updateContact($handle, $contact);
+        } catch (Api_Odr_Exception $e) {
+            $this->Error[] = $e->getMessage();
 
-        /**
-         * Step 1) Update the contact, it can depend on the modified data which action you should take.
-         */
-        $sex    = strtoupper($whois->{$prefix . 'Sex'});
-        $gender = 'NA';
-
-        if (in_array($sex, array('M', 'F'), true)) {
-            $gender = $sex === 'M' ? 'MALE' : 'FEMALE';
+            return false;
         }
-
-        $legalForm = $this->_getLegalForm($whois, $prefix);
-
-        $parameters = array(
-            'first_name'              => $whois->{$prefix . 'Initials'},
-            'last_name'               => $whois->{$prefix . 'SurName'},
-            'full_name'               => $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},
-            'initials'                => $whois->{$prefix . 'Initials'},
-            //birthday
-            //state
-            'city'                    => $whois->{$prefix . 'City'},
-            'postal_code'             => strtoupper(str_replace(' ', '', $whois->{$prefix . 'ZipCode'})),
-            'phone'                   => $whois->{$prefix . 'CountryCode'} . '.' . str_replace(' ', '', $whois->{$prefix . 'PhoneNumber'}),
-            'email'                   => $whois->{$prefix . 'EmailAddress'},
-            'country'                 => $whois->{$prefix . 'Country'},
-            'language'                => 'NL',
-            'gender'                  => $gender,
-            'street'                  => $whois->{$prefix . 'StreetName'},
-            'house_number'            => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
-            //url
-            'company_name'            => $whois->{$prefix . 'CompanyName'} ?: $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},
-            'company_email'           => $whois->{$prefix . 'EmailAddress'},
-            'company_street'          => $whois->{$prefix . 'StreetName'},
-            'company_house_number'    => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
-            'company_postal_code'     => strtoupper(str_replace(' ', '', $whois->{$prefix . 'ZipCode'})),
-            'company_city'            => $whois->{$prefix . 'City'},
-            'company_phone'           => $whois->{$prefix . 'CountryCode'} . '.' . str_replace(' ', '', $whois->{$prefix . 'PhoneNumber'}),
-            //company_url
-            'company_vatin'           => $whois->{$prefix . 'TaxNumber'},
-            'organization_legal_form' => $legalForm,
-        );
-
-        $this->odr->custom('/contact/' . $handle, Api_Odr::METHOD_PUT, $parameters);
 
         return $this->_checkResult(true, $loggedIn);
     }
@@ -759,15 +691,8 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-         /**
-         * Step 1) Create the contact
-         */
-        // Create the contact
         $whois = new Whois();
 
-        /**
-         * Step 1) Search for contact data
-         */
         try {
             $this->odr->getContact($handle);
         } catch (Api_Odr_Exception $e) {
@@ -784,10 +709,6 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']);
         }
 
-        /**
-         * Step 2) provide feedback to WeFact
-         */
-        // The contact is found
         $whois->ownerCompanyName      = $result['response']['organization_legal_form'] === 'PERSOON' ? $result['response']['full_name'] : $result['response']['company_name'];
         $whois->ownerTaxNumber        = empty($result['response']['company_vatin']) ? null : $result['response']['company_vatin'];
         $whois->ownerCompanyLegalForm = $result['response']['organization_legal_form'];
@@ -901,9 +822,6 @@ class opendomainregistry implements IRegistrar
             );
         }
 
-        /**
-         * Step 2) provide feedback to WeFact
-         */
         return $contacts;
     }
 
@@ -924,7 +842,7 @@ class opendomainregistry implements IRegistrar
         }
 
         try {
-            $this->odr->getDomainInfo('/domain/info/' . $domain);
+            $this->odr->getDomainInfo($domain);
         } catch (Api_Odr_Exception $e) {
             $this->Error[] = $e->getMessage();
 
@@ -1165,7 +1083,7 @@ class opendomainregistry implements IRegistrar
             $handle = $this->getContactHandle($whois, $key);
 
             // If no existing handle is found, create new handle
-            if ($handle == '' && !$handle = $this->createContact($whois, $key)) {
+            if (!$handle && !$handle = $this->createContact($whois, $key)) {
                 return false;
             }
 
@@ -1196,5 +1114,51 @@ class opendomainregistry implements IRegistrar
         }
 
         return (!$whois->{$prefix . 'CompanyLegalForm'} || substr($whois->{$prefix . 'CompanyLegalForm'}, 0, 3) === 'BE-') ? 'ANDERS' : $whois->{$prefix . 'CompanyLegalForm'};
+    }
+
+    public function mapWhoisToContact(Whois $whois, $type)
+    {
+        $prefix = $this->_getContactPrefix($type);
+
+        // Some help-functions, to obtain more formatted data
+        $whois->getParam($prefix, 'StreetName');  // Not only Address, but also StreetName, StreetNumber and StreetNumberAddon are available after calling this function
+        $whois->getParam($prefix, 'CountryCode'); // Phone and faxnumber are split. CountryCode, PhoneNumber and FaxNumber available. CountryCode contains for example '+31'. PhoneNumber contains number without leading zero e.g. '123456789'
+
+        $legalForm = $this->_getLegalForm($whois, $prefix);
+
+        $gender = 'NA';
+
+        if (in_array(strtoupper($whois->{$prefix . 'Sex'}), array('F', 'M'), true)) {
+            $gender = strtoupper($whois->{$prefix . 'Sex'}) === 'F' ? 'FEMALE' : 'MALE';
+        }
+
+        return array(
+            'first_name'              => $whois->{$prefix . 'Initials'},
+            'last_name'               => $whois->{$prefix . 'SurName'},
+            'full_name'               => $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},
+            'initials'                => $whois->{$prefix . 'Initials'},
+            //birthday
+            //state
+            'city'                    => $whois->{$prefix . 'City'},
+            'postal_code'             => strtoupper(str_replace(' ', '', $whois->{$prefix . 'ZipCode'})),
+            'phone'                   => $whois->{$prefix . 'CountryCode'} . '.' . str_replace(' ', '', $whois->{$prefix . 'PhoneNumber'}),
+            'email'                   => $whois->{$prefix . 'EmailAddress'},
+            'country'                 => $whois->{$prefix . 'Country'},
+            'language'                => 'NL',
+            'gender'                  => $gender,
+            'street'                  => $whois->{$prefix . 'StreetName'},
+            'house_number'            => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
+            //url
+            'company_name'            => ($whois->{$prefix . 'CompanyName'}) ?: $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},
+            'company_email'           => $whois->{$prefix . 'EmailAddress'},
+            'company_street'          => $whois->{$prefix . 'StreetName'},
+            'company_house_number'    => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
+            'company_postal_code'     => strtoupper(str_replace(' ', '', $whois->{$prefix . 'ZipCode'})),
+            'company_city'            => $whois->{$prefix . 'City'},
+            'company_phone'           => $whois->{$prefix . 'CountryCode'} . '.' . str_replace(' ', '', $whois->{$prefix . 'PhoneNumber'}),
+            //company_url
+            'company_vatin'           => $whois->{$prefix . 'TaxNumber'},
+            'organization_legal_form' => $legalForm,
+        );
     }
 }

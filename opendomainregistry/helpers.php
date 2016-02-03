@@ -590,6 +590,11 @@ class Api_Odr
 
         return $this;
     }
+
+    public function updateContact($handle, array $data)
+    {
+        return $this->custom('/contact/' . $handle, Api_Odr::METHOD_PUT, $data);
+    }
 }
 
 class Api_Odr_Exception extends Exception

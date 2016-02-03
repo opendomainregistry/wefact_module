@@ -205,8 +205,21 @@ class Odr extends \Api_Odr
     
     public function getDomainInfo($domain)
     {
-        if (!empty($this->_config['token']) && strpos($this->_config['token'], 'token$throw') === 0) {
+        if ((!empty($this->_config['token']) && strpos($this->_config['token'], 'token$throw') === 0) || (!empty($this->_config['tokenInfo']) && strpos($this->_config['tokenInfo'], 'token$throw') === 0)) {
             return $this->setError('Forced error');
+        }
+
+        if (!empty($this->_config['tokenInfo']) && strpos($this->_config['tokenInfo'], 'token$success') !== 0) {
+            return $this->setResult(
+                array(
+                    'status'   => self::STATUS_ERROR,
+                    'code'     => 404,
+                    'response' => array(
+                        'message' => 'Forced error',
+                        'data'    => array(),
+                    ),
+                )
+            );
         }
 
         if (empty($this->_config['token']) || strpos($this->_config['token'], 'token$success') === 0) {
@@ -217,9 +230,12 @@ class Odr extends \Api_Odr
                     'status'   => self::STATUS_SUCCESS,
                     'code'     => 200,
                     'response' => array(
+                        'id'              => 3,
                         'domain_id'       => 3,
                         'status'          => 'REGISTERED',
+                        'name'            => $name,
                         'domain_name'     => $name,
+                        'autorenew'       => 'ON',
                         'tld'             => $tld,
                         'expiration_date' => (date('Y') + 1) . '-01-01',
                         'auth_code'       => $tld === 'be' ? null : 'TEST1221TSET',
@@ -474,6 +490,40 @@ class Odr extends \Api_Odr
         );
     }
 
+    public function updateDomain($domain, array $data = array())
+    {
+        if (!empty($this->_config['token']) && strpos($this->_config['token'], 'token$throw') === 0) {
+            return $this->setError('Forced error');
+        }
+
+        if (!empty($this->_config['tokenUpdate']) && strpos($this->_config['tokenUpdate'], 'token$throw') === 0) {
+            return $this->setError('Forced error');
+        }
+
+        if (empty($this->_config['token']) || strpos($this->_config['token'], 'token$success') === 0) {
+            return $this->setResult(
+                array(
+                    'status'   => self::STATUS_SUCCESS,
+                    'code'     => 200,
+                    'response' => array(
+                        'result' => true,
+                    ),
+                )
+            );
+        }
+
+        return $this->setResult(
+            array(
+                'status'   => self::STATUS_ERROR,
+                'code'     => 404,
+                'response' => array(
+                    'message' => 'Forced error',
+                    'data'    => array(),
+                ),
+            )
+        );
+    }
+
     public function transferDomain($domain, array $data = array())
     {
         if (!empty($this->_config['token']) && strpos($this->_config['token'], 'token$throw') === 0) {
@@ -491,6 +541,78 @@ class Odr extends \Api_Odr
                     'code'     => 200,
                     'response' => array(
                         'result' => true,
+                    ),
+                )
+            );
+        }
+
+        return $this->setResult(
+            array(
+                'status'   => self::STATUS_ERROR,
+                'code'     => 404,
+                'response' => array(
+                    'message' => 'Forced error',
+                    'data'    => array(),
+                ),
+            )
+        );
+    }
+
+    public function createContact(array $data)
+    {
+        if (!empty($this->_config['tokenCreateContact']) && strpos($this->_config['tokenCreateContact'], 'token$success') === 0) {
+            return $this->setResult(
+                array(
+                    'status'   => self::STATUS_SUCCESS,
+                    'code'     => 200,
+                    'response' => array(
+                        'id' => 1,
+                    ),
+                )
+            );
+        }
+
+        if (!empty($this->_config['token']) && strpos($this->_config['token'], 'token$throw') === 0) {
+            return $this->setError('Forced error');
+        }
+
+        if (empty($this->_config['token']) || strpos($this->_config['token'], 'token$success') === 0) {
+            return $this->setResult(
+                array(
+                    'status'   => self::STATUS_SUCCESS,
+                    'code'     => 200,
+                    'response' => array(
+                        'id' => 1,
+                    ),
+                )
+            );
+        }
+
+        return $this->setResult(
+            array(
+                'status'   => self::STATUS_ERROR,
+                'code'     => 404,
+                'response' => array(
+                    'message' => 'Forced error',
+                    'data'    => array(),
+                ),
+            )
+        );
+    }
+
+    public function updateContact($handle, array $data)
+    {
+        if (!empty($this->_config['token']) && strpos($this->_config['token'], 'token$throw') === 0) {
+            return $this->setError('Forced error');
+        }
+
+        if (empty($this->_config['token']) || strpos($this->_config['token'], 'token$success') === 0) {
+            return $this->setResult(
+                array(
+                    'status'   => self::STATUS_SUCCESS,
+                    'code'     => 200,
+                    'response' => array(
+                        'id' => $handle,
                     ),
                 )
             );

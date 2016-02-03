@@ -3,7 +3,7 @@ namespace Tests\Odr;
 
 use Tests\UnitTestCase;
 
-class DeleteDomainTest extends UnitTestCase
+class UpdateNameServersTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
@@ -18,10 +18,10 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl'));
+        self::assertFalse($wefact->updateNameServers('test.nl'));
     }
 
-    public function testEndInfoError()
+    public function testInfoError()
     {
         $wefact = $this->getModule();
 
@@ -35,10 +35,10 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'end'));
+        self::assertFalse($wefact->updateNameServers('test.nl'));
     }
 
-    public function testEndInfoException()
+    public function testInfoException()
     {
         $wefact = $this->getModule();
 
@@ -52,27 +52,10 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'end'));
+        self::assertFalse($wefact->updateNameServers('test.nl'));
     }
 
-    public function testEndInfoSuccess()
-    {
-        $wefact = $this->getModule();
-
-        $wefact->odr->setConfig(
-            array(
-                'api_key'    => 'public$success',
-                'api_secret' => 'secret$success',
-                'token'      => 'token$success',
-                'tokenInfo'  => 'token$success',
-                'url'        => $wefact::URL_TEST,
-            )
-        );
-
-        self::assertTrue($wefact->deleteDomain('test.nl', 'end'));
-    }
-
-    public function testOtherError()
+    public function testError()
     {
         $wefact = $this->getModule();
 
@@ -85,26 +68,27 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+        self::assertFalse($wefact->updateNameServers('test.nl'));
     }
 
-    public function testOtherException()
+    public function testException()
     {
         $wefact = $this->getModule();
 
         $wefact->odr->setConfig(
             array(
-                'api_key'    => 'public$success',
-                'api_secret' => 'secret$success',
-                'token'      => 'token$thrown',
-                'url'        => $wefact::URL_TEST,
+                'api_key'     => 'public$success',
+                'api_secret'  => 'secret$success',
+                'token'       => 'token$success',
+                'tokenUpdate' => 'token$thrown',
+                'url'         => $wefact::URL_TEST,
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+        self::assertFalse($wefact->updateNameServers('test.nl'));
     }
 
-    public function testOtherSuccess()
+    public function testSuccess()
     {
         $wefact = $this->getModule();
 
@@ -117,6 +101,6 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertTrue($wefact->deleteDomain('test.nl', 'fastest'));
+        self::assertTrue($wefact->updateNameServers('test.nl'));
     }
 }

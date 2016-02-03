@@ -32,4 +32,19 @@ class ObtainHandleTest extends UnitTestCase
         self::assertEquals('BBB', $method->invoke($wefact, 'test.nl', $whois, HANDLE_ADMIN));
         self::assertEquals('CCC', $method->invoke($wefact, 'test.nl', $whois, HANDLE_TECH));
     }
+
+    public function testSurNameError()
+    {
+        $wefact = new Module;
+        $method = $this->getSecureMethod($wefact, '_obtainHandle');
+
+        $whois = new Whois;
+
+        $whois->ownerSurName      = 'Testov';
+        $whois->ownerCompanyName  = 'T Testov';
+        $whois->ownerInitials     = 'T';
+        $whois->ownerEmailAddress = 'test@gooblesupermegacomp.com';
+
+        self::assertFalse($method->invoke($wefact, 'test.nl', $whois, HANDLE_OWNER));
+    }
 }

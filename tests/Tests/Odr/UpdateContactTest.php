@@ -3,7 +3,9 @@ namespace Tests\Odr;
 
 use Tests\UnitTestCase;
 
-class GetDomainInformationTest extends UnitTestCase
+use Whois;
+
+class UpdateContactTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
@@ -18,7 +20,9 @@ class GetDomainInformationTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainInformation('test.nl'));
+        $whois = new Whois;
+
+        self::assertFalse($wefact->updateContact(1, $whois));
     }
 
     public function testError()
@@ -34,7 +38,9 @@ class GetDomainInformationTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainInformation('test.nl'));
+        $whois = new Whois;
+
+        self::assertFalse($wefact->updateContact(1, $whois));
     }
 
     public function testException()
@@ -50,33 +56,19 @@ class GetDomainInformationTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainInformation('test.nl'));
+        $whois = new Whois;
+
+        self::assertFalse($wefact->updateContact(1, $whois));
     }
 
     public function testSuccess()
     {
         $wefact = $this->getModule();
 
-        $whois = $wefact->getContact(24);
+        $whois = new Whois;
 
-        $whois->adminHandle = 32;
-        $whois->techHandle  = null;
+        $whois->ownerSex = 'm';
 
-        $expected = array(
-            'Domain'      => 'test.nl',
-            'Information' => array(
-                'nameservers'       => array(
-                    'ns1.test.ru',
-                    'ns2.test.ru',
-                ),
-                'whois'             => $whois,
-                'expiration_date'   => date('Y') + 1 . '-01-01',
-                'registration_date' => '',
-                'authkey'           => 'TEST1221TSET',
-                'auto_renew'        => 'on',
-            ),
-        );
-
-        self::assertEquals($expected, $wefact->getDomainInformation('test.nl'));
+        self::assertTrue($wefact->updateContact(1, $whois));
     }
 }
