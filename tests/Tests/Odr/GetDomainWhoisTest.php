@@ -58,8 +58,8 @@ class GetDomainWhoisTest extends UnitTestCase
         $wefact = $this->getModule();
 
         $expected = array(
-            'ownerHandle' => 'XXX001',
-            'adminHandle' => 'XXX001',
+            'ownerHandle' => 24,
+            'adminHandle' => 32,
             'techHandle'  => null,
         );
 

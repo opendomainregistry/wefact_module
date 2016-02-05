@@ -153,7 +153,7 @@ class Odr extends \Api_Odr
                     'status'   => self::STATUS_SUCCESS,
                     'code'     => 200,
                     'response' => array(
-                        'available' => $domain === 'test.nl',
+                        'is_available' => $domain === 'test.nl',
                     ),
                 )
             );
@@ -247,14 +247,10 @@ class Odr extends \Api_Odr
                             'REGISTRANT' => 24,
                             'ONSITE'     => 32
                         ),
-                        'ns1' => 'ns1.test.ru',
-                        'ns2' => 'ns2.test.ru',
-                        'ns3' => null,
-                        'ns4' => null,
-                        'ns5' => null,
-                        'ns6' => null,
-                        'ns7' => null,
-                        'ns8' => null,
+                        'nameservers' => array(
+                            'ns1.test.ru',
+                            'ns2.test.ru',
+                        ),
                     ),
                 )
             );

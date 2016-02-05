@@ -102,7 +102,7 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']);
         }
 
-        return (bool)$result['response']['available'];
+        return (bool)$result['response']['is_available'];
     }
 
     /**
