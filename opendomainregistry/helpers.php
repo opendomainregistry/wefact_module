@@ -58,9 +58,7 @@ class Api_Odr
     public function __construct(array $config = array())
     {
         if (extension_loaded('curl') === false) {
-            echo 'cURL extension required by this class. Check you php.ini';
-
-            exit();
+            throw new Api_Odr_Exception('cURL extension required by this class. Check you php.ini');
         }
 
         if (count($config) > 0) {
@@ -158,10 +156,10 @@ class Api_Odr
 
         switch($wrapper) {
             case 'sha1':
-                    $signature = sha1($signature);
+                $signature = sha1($signature);
                 break;
             case 'md5':
-                    $signature = md5($signature);
+                $signature = md5($signature);
                 break;
             default:
                 break;
@@ -170,14 +168,14 @@ class Api_Odr
         $data = array(
             'timestamp' => $timestamp,
             'api_key'   => $apiKey,
-            'signature' => $signature,
+            'signature' => 'token$' . $signature,
         );
 
         $this->_execute('/user/login/', self::METHOD_POST, $data);
 
         $result = $this->_result;
 
-        $this->setHeader($result['response']['header'], $result['response']['access_token']);
+        $this->setHeader($result['response']['as_header'], $result['response']['token']);
 
         return $this;
     }
@@ -476,6 +474,8 @@ class Api_Odr
             $method = self::DEFAULT_METHOD;
         }
 
+        $url = rtrim($url, '/') . '/';
+
         $method = strtoupper($method);
         $host   = $this->getUrl();
 
@@ -520,11 +520,8 @@ class Api_Odr
 
         curl_close($ch);
 
-        // Too much request at a time can ban us
-        sleep(1);
-
         if (!empty($this->_error)) {
-            throw new Api_Odr_Exception(self::MESSAGE_CURL_ERROR_FOUND);
+            throw new Api_Odr_Exception($this->_error);
         }
 
         return $this;
@@ -567,7 +564,7 @@ class Api_Odr
      */
     public function getUrl()
     {
-        return empty($this->_config['url']) ? self::URL : $this->_config['url'];
+        return rtrim(empty($this->_config['url']) ? self::URL : $this->_config['url'], '/') . '/';
     }
 
     /**

@@ -33,5 +33,57 @@ interface IRegistrar
 
     public function updateNameServers($domain, $nameservers = array());
 
-    public function getVersionInformation();
+    static public function getVersionInformation();
+}
+
+class Database_Model
+{
+    protected $_bind = array();
+
+    static public function getInstance()
+    {
+        return new self;
+    }
+
+    public function bindValue($bind, $value)
+    {
+        $this->_bind[$bind] = $value;
+    }
+
+    public function execute()
+    {
+        $this->_bind = array();
+
+        return new MockResponse;
+    }
+
+    public function fetch()
+    {
+        return $this->execute();
+    }
+
+    public function fetchAll($mode = \PDO::FETCH_ASSOC)
+    {
+        return $this->execute();
+    }
+
+    public function prepare($sql)
+    {
+        return $this;
+    }
+}
+
+class MockResponse
+{
+    protected $_data = array();
+
+    public function __get($key)
+    {
+        return empty($this->_data[$key]) ? null : $this->_data[$key];
+    }
+
+    public function __set($key, $value)
+    {
+        $this->_data[$key] = $value;
+    }
 }

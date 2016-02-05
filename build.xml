@@ -16,6 +16,7 @@
     <property name="phpmd"      value="${basedir}/vendor/bin/phpmd.bat" />
     <property name="phpunit"    value="${basedir}/vendor/bin/phpunit.bat" />
     <property name="phpmetrics" value="${basedir}/vendor/bin/phpmetrics.bat" />
+    <property name="phpdox"     value="${basedir}/vendor/bin/phpdox.bat" />
     <property name="composer"   value="${basedir}/composer.phar" />
 
     <target name="composer-check">
@@ -54,9 +55,9 @@
         <property name="composer.done" value="true" />
     </target>
 
-    <target name="full-build" depends="prepare,composer,static-analysis,phpunit,-check-failure" description="Performs static analysis, runs the tests, and generates project documentation" />
+    <target name="full-build" depends="prepare,composer,static-analysis,phpunit,-check-failure,-finalize" description="Performs static analysis, runs the tests, and generates project documentation" />
 
-    <target name="production" depends="prepare,composer-production" description="Prepares and migrates, clearing code for production" />
+    <target name="production" depends="prepare,composer-production,-finalize" description="Prepares and migrates, clearing code for production" />
 
     <target name="full-build-parallel" depends="prepare,composer,static-analysis-parallel,phpunit,-check-failure" description="Performs static analysis (executing the tools in parallel), runs the tests, and generates project documentation" />
 
@@ -81,6 +82,7 @@
         <delete dir="${basedir}/temporary/build/coverage" />
         <delete dir="${basedir}/temporary/build/logs" />
         <delete dir="${basedir}/temporary/build/pdepend" />
+        <delete dir="${basedir}/build" />
 
         <property name="clean.done" value="true" />
     </target>
@@ -89,6 +91,7 @@
         <mkdir dir="${basedir}/temporary/build/coverage" />
         <mkdir dir="${basedir}/temporary/build/logs" />
         <mkdir dir="${basedir}/temporary/build/pdepend" />
+        <mkdir dir="${basedir}/build" />
 
         <property name="prepare.done" value="true" />
     </target>
@@ -198,6 +201,13 @@
         <property name="phpunit.done" value="true" />
     </target>
 
+    <target name="phpdox" depends="phpunit,phploc-ci,phpcpd-ci,phpmd-ci" description="Generate API documentation using phpDox">
+        <exec executable="${phpdox}">
+            <arg value="-f" />
+            <arg value="${basedir}/phpdox.xml" />
+        </exec>
+    </target>
+
     <target name="phpunit-no-coverage" unless="phpunit.done" depends="prepare" description="Run unit tests with PHPUnit (without generating code coverage reports)">
         <exec executable="${phpunit}" failonerror="true" taskname="phpunit">
             <arg value="--configuration" />
@@ -216,5 +226,13 @@
                 </not>
             </condition>
         </fail>
+    </target>
+
+    <target name="-finalize">
+        <copy file="${basedir}/opendomainregistry/helpers.php" tofile="${basedir}/build/opendomainregistry/helpers.php" />
+        <copy file="${basedir}/opendomainregistry/opendomainregistry.php" tofile="${basedir}/build/opendomainregistry/opendomainregistry.php" />
+        <copy file="${basedir}/opendomainregistry/version.php" tofile="${basedir}/build/opendomainregistry/version.php" />
+
+        <zip destfile="${basedir}/build/latest.zip" basedir="build" />
     </target>
 </project>

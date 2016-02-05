@@ -10,7 +10,6 @@ class opendomainregistry implements IRegistrar
 
     public $User;
     public $Password;
-    public $Testmode = false;
 
     public $Error;
     public $Warning;
@@ -20,12 +19,16 @@ class opendomainregistry implements IRegistrar
 
     public $registrarHandles = array();
 
+    protected $_registrarId;
+
     /**
      * @var string
      *
      * @protected
+     *
+     * @static
      */
-    protected $_versionFile = 'version.php';
+    static protected $_versionFile = 'version.php';
 
     private $ClassName;
     private $AccessToken;
@@ -46,15 +49,30 @@ class opendomainregistry implements IRegistrar
         $this->TldPeriod3  = array('vc','vg');
         $this->TldPeriod10 = array('tm');
 
-        // Configuration array, with user API Keys
-        $config = array(
-            'api_key'    => $this->User,
-            'api_secret' => $this->Password,
-            'url'        => $this->Testmode ? self::URL_TEST : self::URL_LIVE,
-        );
+        $pdo_statement = Database_Model::getInstance()->prepare('SELECT * FROM `WeFact_Registrar` WHERE `Class` = :classname');
 
-        // Create new instance of API demo class
-        $this->odr = new Api_Odr($config);
+        $dir = basename(__DIR__);
+
+        $pdo_statement->bindValue(':classname', $dir);
+        $pdo_statement->execute();
+
+        $this->_registrarId = $pdo_statement->fetch()->id;
+    }
+
+    public function getAvailableTlds()
+    {
+        if ($this->_registrarId === null) {
+            return null;
+        }
+
+        $pdo_statement = Database_Model::getInstance()->prepare('SELECT `Tld` FROM `WeFact_TopLevelDomain` WHERE `Registrar` = :registrar');
+
+        $pdo_statement->bindValue(':registrar', $this->_registrarId);
+        $pdo_statement->execute();
+
+        $tlds = $pdo_statement->fetchAll(PDO::FETCH_COLUMN);
+
+        return empty($tlds) ? null : $tlds;
     }
 
     /**
@@ -293,33 +311,35 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']);
         }
 
+        $response = $result['response'];
+
         $nameservers = array();
 
-        foreach ($result['response'] as $k => $v) {
-            if ($v === null || strpos($k, 'ns') !== 0) {
+        foreach ($response['nameservers'] as $ns) {
+            if (empty($ns)) {
                 continue;
             }
 
-            $nameservers[] = is_array($v) ? $v['host'] : $v;
+            $nameservers[] = is_array($ns) ? $ns['host'] : $ns;
         }
 
-        $whois = $this->getContact($result['response']['contacts_map']['REGISTRANT']);
+        $whois = $this->getContact($response['contacts_map']['REGISTRANT']);
 
-        $whois->adminHandle = $result['response']['contacts_map']['ONSITE'];
-        $whois->techHandle  = !empty($result['response']['contacts_map']['TECH']) ? $result['response']['contacts_map']['TECH'] : null;
+        $whois->adminHandle = $response['contacts_map']['ONSITE'];
+        $whois->techHandle  = !empty($response['contacts_map']['TECH']) ? $response['contacts_map']['TECH'] : null;
 
-        $authkey         = empty($result['response']['auth_code']) ? null : $result['response']['auth_code'];
-        $expiration_date = date('Y-m-d', strtotime($result['response']['expiration_date']));
+        $authkey        = empty($response['auth_code']) ? null : $response['auth_code'];
+        $expirationDate = date('Y-m-d', strtotime((empty($response['expiration_date']) ? $response['expiration_at'] : $response['expiration_date'])));
 
         return array(
             'Domain'      => $domain,
             'Information' => array(
                 'nameservers'       => $nameservers,
                 'whois'             => $whois,
-                'expiration_date'   => $expiration_date,
+                'expiration_date'   => $expirationDate,
                 'registration_date' => '',
                 'authkey'           => $authkey,
-                'auto_renew'        => empty($result['response']['autorenew']) ? '' : strtolower($result['response']['autorenew']),
+                'auto_renew'        => empty($response['autorenew']) ? '' : strtolower($response['autorenew']),
             ),
         );
     }
@@ -347,6 +367,12 @@ class opendomainregistry implements IRegistrar
             $filter['contact'] = $contactHandle;
         }
 
+        $tlds = $this->getAvailableTlds();
+
+        if (!empty($tlds)) {
+            $filter['tlds'] = implode(',', $tlds);
+        }
+
         $this->odr->getDomains($filter);
 
         $result = $this->odr->getResult();
@@ -365,7 +391,7 @@ class opendomainregistry implements IRegistrar
                 'Information' => array(
                     'nameservers' => array(),
                     'whois'       => null,
-                    'expires'     => date('Y-m-d', strtotime($domain['expiration_date'])),
+                    'expires'     => date('Y-m-d', strtotime((!empty($domain['expiration_date']) ? $domain['expiration_date'] : $domain['expiration_at']))),
                     'regdate'     => '',
                     'authkey'     => '',
                 ),
@@ -550,14 +576,14 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']);
         }
 
-        $parameters = $result['response'];
+        $response = $result['response'];
 
-        $parameters['contact_registrant'] = $ownerHandle;
-        $parameters['contact_tech']       = $techHandle;
-        $parameters['contact_onsite']     = $adminHandle;
+        $response['contact_registrant'] = $ownerHandle;
+        $response['contact_tech']       = $techHandle;
+        $response['contact_onsite']     = $adminHandle;
 
         try {
-            $this->odr->updateDomain($domain, $parameters);
+            $this->odr->updateDomain($domain, $response);
         } catch (Api_Odr_Exception $e) {
             $this->Error[] = $e->getMessage();
 
@@ -600,10 +626,12 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']);
         }
 
+        $response = $result['response'];
+
         $contacts = array(
-            'ownerHandle' => $result['response']['contacts']['REGISTRANT'],
-            'adminHandle' => $result['response']['contacts']['ONSITE'],
-            'techHandle'  => empty($result['response']['contacts']['TECH']) ? null : $result['response']['contacts']['TECH'],
+            'ownerHandle' => $response['contacts_map']['REGISTRANT'],
+            'adminHandle' => $response['contacts_map']['ONSITE'],
+            'techHandle'  => empty($response['contacts_map']['TECH']) ? null : $response['contacts_map']['TECH'],
         );
 
         return $contacts;
@@ -709,21 +737,23 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']);
         }
 
-        $whois->ownerCompanyName      = $result['response']['organization_legal_form'] === 'PERSOON' ? $result['response']['full_name'] : $result['response']['company_name'];
-        $whois->ownerTaxNumber        = empty($result['response']['company_vatin']) ? null : $result['response']['company_vatin'];
-        $whois->ownerCompanyLegalForm = $result['response']['organization_legal_form'];
+        $response = $result['response'];
 
-        $whois->ownerSex      = ($result['response']['gender'] === 'FEMALE' ? 'f' : 'm');
-        $whois->ownerInitials = $result['response']['initials'];
-        $whois->ownerSurName  = $result['response']['last_name'];
-        $whois->ownerAddress  = $result['response']['street'] . ' ' . $result['response']['house_number'];
-        $whois->ownerZipCode  = $result['response']['postal_code'];
-        $whois->ownerCity     = $result['response']['city'];
+        $whois->ownerCompanyName      = $response['organization_legal_form'] === 'PERSOON' ? $response['full_name'] : $response['company_name'];
+        $whois->ownerTaxNumber        = empty($response['company_vatin']) ? null : $response['company_vatin'];
+        $whois->ownerCompanyLegalForm = $response['organization_legal_form'];
 
-        $whois->ownerCountry      = $result['response']['country'];
-        $whois->ownerPhoneNumber  = $result['response']['phone'];
-        $whois->ownerFaxNumber    = $result['response']['fax'];
-        $whois->ownerEmailAddress = $result['response']['email'];
+        $whois->ownerSex      = ($response['gender'] === 'FEMALE' ? 'f' : 'm');
+        $whois->ownerInitials = $response['initials'];
+        $whois->ownerSurName  = $response['last_name'];
+        $whois->ownerAddress  = $response['street'] . ' ' . $response['house_number'];
+        $whois->ownerZipCode  = $response['postal_code'];
+        $whois->ownerCity     = $response['city'];
+
+        $whois->ownerCountry      = $response['country'];
+        $whois->ownerPhoneNumber  = $response['phone'];
+        $whois->ownerFaxNumber    = $response['fax'];
+        $whois->ownerEmailAddress = $response['email'];
 
         return $whois;
     }
@@ -875,10 +905,10 @@ class opendomainregistry implements IRegistrar
      *
      * @static
      */
-    public function getVersionInformation()
+    static public function getVersionInformation()
     {
         /** @var array $version */
-        return include $this->_versionFile;
+        return include self::$_versionFile;
     }
 
     public function reset()
@@ -887,12 +917,20 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        // Force correct type of credentials
         if (strpos($this->User, 'public$') !== 0) {
             return $this->parseError('Vul de API key als gebruikersnaam in en de API secret als wachtwoord.');
         }
 
-        // Login into API
+        if (!$this->odr) {
+            $config = array(
+                'api_key'    => $this->User,
+                'api_secret' => $this->Password,
+                'url'        => $this->Testmode ? self::URL_TEST : self::URL_LIVE,
+            );
+
+            $this->odr = new Api_Odr($config);
+        }
+
         try {
             $this->odr->login();
 
@@ -982,8 +1020,8 @@ class opendomainregistry implements IRegistrar
 
         $error = array();
 
-        foreach ($result['response']['data'] as $_field => $_err) {
-            $error[] = '[' . $_field . '] ' . $_err;
+        foreach ($result['response']['data'] as $fField => $fErr) {
+            $error[] = '[' . $fField . '] ' . $fErr;
         }
 
         $result['response']['message'] .= ': ' . implode(', ', $error);

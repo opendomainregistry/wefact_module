@@ -4,18 +4,20 @@
 
         "ext-json":       "*",
         "ext-curl":       "*",
-        "ext-reflection": "*"
+        "ext-reflection": "*",
+
+        "phpunit/phpunit": "~5.0",
+
+        "phploc/phploc":    "*",
+        "phpmd/phpmd":      "~2.2",
+        "sebastian/phpcpd": "~2.0",
+        "theseer/phpdox":   "~0.8"
     },
 
     "require-dev": {
         "fabpot/php-cs-fixer": "*",
 
-        "phpunit/phpunit": "~5.0",
-
-        "phploc/phploc":        "*",
-        "phpmd/phpmd":          "~2.2",
         "pdepend/pdepend":      "~2.1",
-        "sebastian/phpcpd":     "~2.0",
         "halleck45/phpmetrics": "~1.3"
     },
 
