@@ -75,7 +75,7 @@ class Database_Model
      *
      * @return $this
      *
-     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function fetchAll($mode = \PDO::FETCH_ASSOC)
     {
@@ -87,7 +87,7 @@ class Database_Model
      *
      * @return $this
      *
-     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function prepare($sql)
     {
