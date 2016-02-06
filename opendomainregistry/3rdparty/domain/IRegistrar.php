@@ -62,11 +62,25 @@ class Database_Model
         return $this->execute();
     }
 
+    /**
+     * @param int $mode
+     *
+     * @return $this
+     *
+     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+     */
     public function fetchAll($mode = \PDO::FETCH_ASSOC)
     {
         return $this->execute();
     }
 
+    /**
+     * @param string $sql
+     *
+     * @return $this
+     *
+     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+     */
     public function prepare($sql)
     {
         return $this;

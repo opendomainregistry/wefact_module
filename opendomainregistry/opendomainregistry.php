@@ -49,14 +49,14 @@ class opendomainregistry implements IRegistrar
         $this->TldPeriod3  = array('vc','vg');
         $this->TldPeriod10 = array('tm');
 
-        $pdo_statement = Database_Model::getInstance()->prepare('SELECT * FROM `WeFact_Registrar` WHERE `Class` = :classname');
+        $pdoStatement = Database_Model::getInstance()->prepare('SELECT * FROM `WeFact_Registrar` WHERE `Class` = :classname');
 
         $dir = basename(__DIR__);
 
-        $pdo_statement->bindValue(':classname', $dir);
-        $pdo_statement->execute();
+        $pdoStatement->bindValue(':classname', $dir);
+        $pdoStatement->execute();
 
-        $this->_registrarId = $pdo_statement->fetch()->id;
+        $this->_registrarId = $pdoStatement->fetch()->id;
     }
 
     public function getAvailableTlds()
@@ -65,12 +65,12 @@ class opendomainregistry implements IRegistrar
             return null;
         }
 
-        $pdo_statement = Database_Model::getInstance()->prepare('SELECT `Tld` FROM `WeFact_TopLevelDomain` WHERE `Registrar` = :registrar');
+        $pdoStatement = Database_Model::getInstance()->prepare('SELECT `Tld` FROM `WeFact_TopLevelDomain` WHERE `Registrar` = :registrar');
 
-        $pdo_statement->bindValue(':registrar', $this->_registrarId);
-        $pdo_statement->execute();
+        $pdoStatement->bindValue(':registrar', $this->_registrarId);
+        $pdoStatement->execute();
 
-        $tlds = $pdo_statement->fetchAll(PDO::FETCH_COLUMN);
+        $tlds = $pdoStatement->fetchAll(PDO::FETCH_COLUMN);
 
         return empty($tlds) ? null : $tlds;
     }
