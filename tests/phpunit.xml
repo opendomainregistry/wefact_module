@@ -25,7 +25,14 @@
 
     <filter>
         <whitelist>
-            <directory>./../opendomainregistry/</directory>
+            <file>./../opendomainregistry/opendomainregistry.php</file>
+
+            <exclude>
+                <directory suffix=".php">./../opendomainregistry/3rdparty/</directory>
+
+                <file>./../opendomainregistry/helpers.php</file>
+                <file>./../opendomainregistry/version.php</file>
+            </exclude>
         </whitelist>
 
         <blacklist>

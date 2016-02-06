@@ -19,7 +19,19 @@ class opendomainregistry implements IRegistrar
 
     public $registrarHandles = array();
 
+    /**
+     * @var null|int
+     *
+     * @protected
+     */
     protected $_registrarId;
+
+    /**
+     * @var null|array
+     *
+     * @protected
+     */
+    protected $_availableTlds;
 
     /**
      * @var string
@@ -61,18 +73,24 @@ class opendomainregistry implements IRegistrar
 
     public function getAvailableTlds()
     {
+        if ($this->_availableTlds !== null) {
+            return $this->_availableTlds;
+        }
+
         if ($this->_registrarId === null) {
             return null;
         }
+
+        $this->_availableTlds = array();
 
         $pdoStatement = Database_Model::getInstance()->prepare('SELECT `Tld` FROM `WeFact_TopLevelDomain` WHERE `Registrar` = :registrar');
 
         $pdoStatement->bindValue(':registrar', $this->_registrarId);
         $pdoStatement->execute();
 
-        $tlds = $pdoStatement->fetchAll(PDO::FETCH_COLUMN);
+        $this->_availableTlds = (array)$pdoStatement->fetchAll(PDO::FETCH_COLUMN);
 
-        return empty($tlds) ? null : $tlds;
+        return empty($this->_availableTlds) ? array() : $this->_availableTlds;
     }
 
     /**

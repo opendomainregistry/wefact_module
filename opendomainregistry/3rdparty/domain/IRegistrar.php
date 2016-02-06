@@ -40,9 +40,17 @@ class Database_Model
 {
     protected $_bind = array();
 
+    protected $_response;
+
+    static protected $_instance;
+
     static public function getInstance()
     {
-        return new self;
+        if (self::$_instance === null) {
+            self::$_instance = new self;
+        }
+
+        return self::$_instance;
     }
 
     public function bindValue($bind, $value)
@@ -54,7 +62,7 @@ class Database_Model
     {
         $this->_bind = array();
 
-        return new MockResponse;
+        return $this->_response ?: new MockResponse;
     }
 
     public function fetch()
