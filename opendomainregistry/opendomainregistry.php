@@ -423,13 +423,23 @@ class opendomainregistry implements IRegistrar
      * Change the lock status of the specified domain
      *
      * @param string $domain The domain to change the lock state for
-     * @param bool   $lock   The new lock state
+     * @param bool   $isLock New lock state
      *
      * @return bool True is the lock state was changed succesfully
      */
-    public function lockDomain($domain, $lock = true)
+    public function lockDomain($domain, $isLock = true)
     {
         return $this->parseError('Helaas bezit de API van ODR geen mogelijkheid om domeinnamen te locken. Er wordt niets uitgevoerd.');
+
+        $loggedIn = $this->_checkLogin();
+
+        if (!$loggedIn) {
+            return false;
+        }
+
+        $this->odr->lockDomain($domain, $isLock);
+
+        return $this->_checkResult(true, $loggedIn);
     }
 
     /**
