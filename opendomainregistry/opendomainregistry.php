@@ -174,7 +174,22 @@ class opendomainregistry implements IRegistrar
             'auth_code'          => substr(md5(time()), 0, 6),
         );
 
-        $parameters = array_merge($parameters, $nameservers);
+        foreach (range(1, 8) as $r) {
+            if (empty($nameservers["ns{$r}"])) {
+                continue;
+            }
+
+            $ns = array(
+                'host' => $nameservers["ns{$r}"],
+                'ip'   => null,
+            );
+
+            if (!empty($nameservers["ns{$r}ip"]) && strpos($ns['host'], $domain)) {
+                $ns['ip'] = $nameservers["ns{$r}ip"];
+            }
+
+            $parameters["ns{$r}"] = $ns;
+        }
 
         try {
             $this->odr->registerDomain($domain, $parameters);
@@ -236,7 +251,22 @@ class opendomainregistry implements IRegistrar
             'auth_code'          => $authcode,
         );
 
-        $parameters = array_merge($parameters, $nameservers);
+        foreach (range(1, 8) as $r) {
+            if (empty($nameservers["ns{$r}"])) {
+                continue;
+            }
+
+            $ns = array(
+                'host' => $nameservers["ns{$r}"],
+                'ip'   => null,
+            );
+
+            if (!empty($nameservers["ns{$r}ip"]) && strpos($ns['host'], $domain)) {
+                $ns['ip'] = $nameservers["ns{$r}ip"];
+            }
+
+            $parameters["ns{$r}"] = $ns;
+        }
 
         try {
             $this->odr->transferDomain($domain, $parameters);
@@ -907,13 +937,39 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $result = $this->odr->getResult();
+        $info = $this->odr->getResult();
 
-        if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
-            return $this->parseError($result['response']);
+        if ($info['status'] !== Api_Odr::STATUS_SUCCESS) {
+            return $this->parseError($info['response']);
         }
 
-        $parameters = array_merge($result['response'], $nameservers);
+        $info = $info['response'];
+
+        $parameters = array(
+            'domain_name' => $info['domain_name'],
+            'auth_code'   => $info['auth_code'],
+        );
+
+        foreach ($info['contacts_map'] as $contactType => $contactId) {
+            $parameters['contact_' . strtolower($contactType)] = $contactId;
+        }
+
+        foreach (range(1, 8) as $r) {
+            if (empty($nameservers["ns{$r}"])) {
+                continue;
+            }
+
+            $ns = array(
+                'host' => $nameservers["ns{$r}"],
+                'ip'   => null,
+            );
+
+            if (!empty($nameservers["ns{$r}ip"]) && strpos($ns['host'], $domain)) {
+                $ns['ip'] = $nameservers["ns{$r}ip"];
+            }
+
+            $parameters["ns{$r}"] = $ns;
+        }
 
         try {
             $this->odr->updateDomain($domain, $parameters);

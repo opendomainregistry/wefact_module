@@ -38,12 +38,36 @@ interface IRegistrar
 
 class Database_Model
 {
+    /**
+     * @var array
+     *
+     * @protected
+     */
     protected $_bind = array();
 
+    /**
+     * @var null|MockResponse|mixed
+     *
+     * @protected
+     */
     protected $_response;
 
+    /**
+     * @var null|Database_Model
+     *
+     * @protected
+     *
+     * @static
+     */
     static protected $_instance;
 
+    /**
+     * Returns instance of model
+     *
+     * @return Database_Model|null
+     *
+     * @static
+     */
     static public function getInstance()
     {
         if (self::$_instance === null) {
@@ -53,16 +77,43 @@ class Database_Model
         return self::$_instance;
     }
 
+    /**
+     * Binds value for request
+     * Not usable in this "version", but suppose to act like PDO's prepared statements
+     *
+     * @param $bind
+     * @param $value
+     */
     public function bindValue($bind, $value)
     {
         $this->_bind[$bind] = $value;
     }
 
+    /**
+     * Executes the query and clears any set binds
+     *
+     * @return null|MockResponse|mixed
+     */
     public function execute()
     {
         $this->_bind = array();
 
         return $this->_response ?: new MockResponse;
+    }
+
+    /**
+     * Changes next response
+     * Notice: You can pass anything here, method doesn't wrap your value into other class/array/whatever
+     *
+     * @param null|mixed $response
+     *
+     * @return $this
+     */
+    public function setResponse($response = null)
+    {
+        $this->_response = $response;
+
+        return $this;
     }
 
     public function fetch()
@@ -97,6 +148,11 @@ class Database_Model
 
 class MockResponse
 {
+    /**
+     * @var array
+     *
+     * @protected
+     */
     protected $_data = array();
 
     public function __get($key)

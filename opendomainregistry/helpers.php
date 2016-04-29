@@ -358,13 +358,6 @@ class Api_Odr
             $domainName = null;
         }
 
-        // If you want to pass data directly as part of request, you can uncomment following lines:
-        /*
-        if (empty($data)) {
-            $data = $_REQUEST;
-        }
-        */
-
         if ((!is_string($domainName) || $domainName === '') && array_key_exists('domain_name', $data) === false) {
             throw new Api_Odr_Exception('No domain name defined');
         }
