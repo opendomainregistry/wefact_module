@@ -7,7 +7,7 @@ require_once 'opendomainregistry/opendomainregistry.php';
 require_once 'opendomainregistry/version.php';
 require_once 'opendomainregistry/helpers.php';
 
-ini_set('memory_limit', '24M');
+ini_set('memory_limit', '256M');
 set_time_limit(20);
 
 ini_set('display_errors', 1);
