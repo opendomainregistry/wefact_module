@@ -51,7 +51,7 @@ class Odr extends \Api_Odr
                 )
             );
         }
-        
+
         return $this->setResult(
             array(
                 'status'   => self::STATUS_ERROR,
@@ -374,66 +374,12 @@ class Odr extends \Api_Odr
                     'code'     => 200,
                     'response' => array(
                         array(
-                            'id'                      => 8,
-                            'first_name'              => 'Test',
-                            'middle_name'             => 'Testovich',
-                            'last_name'               => 'Testov',
-                            'full_name'               => 'T Testov',
-                            'initials'                => 'T',
-                            'state'                   => 'Test State',
-                            'city'                    => 'Test City',
-                            'postal_code'             => '1900AB',
-                            'phone'                   => '+555.1234561122',
-                            'fax'                     => null,
-                            'email'                   => 'test@gooblesupermegacomp.com',
-                            'country'                 => 'RU',
-                            'language'                => 'NL',
-                            'gender'                  => 'MALE',
-                            'address'                 => 'Street of 1000 tests, 1000',
-                            'street'                  => 'Street of 1000 tests',
-                            'house_number'            => 1000,
-                            'company_name'            => 'Gooble Super Mega Company, Test Division',
-                            'company_email'           => 'test@gooblesupermegacomp.com',
-                            'company_address'         => 'Last Test str, 122',
-                            'company_street'          => 'Last Test str',
-                            'company_house_number'    => 122,
-                            'company_postal_code'     => '4321AB',
-                            'company_city'            => 'Test City',
-                            'company_phone'           => '+1.1234567890',
-                            'organization_legal_form' => 'PERSOON',
-                            'created'                 => '2016-02-02 10:07:52',
-                            'updated'                 => '2016-02-02 10:07:52',
+                            'id'   => 8,
+                            'name' => 'T Testov',
                         ),
                         array(
-                            'id'                      => 9,
-                            'first_name'              => 'Test2',
-                            'middle_name'             => 'Testovich2',
-                            'last_name'               => 'Testov2',
-                            'full_name'               => 'Test2 Testovich2 Testov2',
-                            'initials'                => 'T2',
-                            'state'                   => 'Test2 State',
-                            'city'                    => 'Test2 City',
-                            'postal_code'             => '1900AB',
-                            'phone'                   => '+555.654321122',
-                            'fax'                     => null,
-                            'email'                   => 'test2@gooblesupermegacomp.com',
-                            'country'                 => 'RU',
-                            'language'                => 'NL',
-                            'gender'                  => 'MALE',
-                            'address'                 => 'Street of 1001 tests, 1001',
-                            'street'                  => 'Street of 1001 tests',
-                            'house_number'            => 1000,
-                            'company_name'            => 'Gooble Super Mega Company, Test Division',
-                            'company_email'           => 'test@gooblesupermegacomp.com',
-                            'company_address'         => 'Last Test str, 122',
-                            'company_street'          => 'Last Test str',
-                            'company_house_number'    => 122,
-                            'company_postal_code'     => '4321AB',
-                            'company_city'            => 'Test City',
-                            'company_phone'           => '+1.1234567890',
-                            'organization_legal_form' => 'ANDERS',
-                            'created'                 => '2017-02-02 10:07:52',
-                            'updated'                 => '2017-02-02 10:07:52',
+                            'id'   => 9,
+                            'name' => 'Gooble Super Mega Company, Test Division',
                         ),
                     ),
                 )
@@ -562,7 +508,9 @@ class Odr extends \Api_Odr
                     'status'   => self::STATUS_SUCCESS,
                     'code'     => 200,
                     'response' => array(
-                        'id' => 1,
+                        'data' => array(
+                            'id' => 1,
+                        ),
                     ),
                 )
             );
@@ -578,7 +526,9 @@ class Odr extends \Api_Odr
                     'status'   => self::STATUS_SUCCESS,
                     'code'     => 200,
                     'response' => array(
-                        'id' => 1,
+                        'data' => array(
+                            'id' => 1,
+                        ),
                     ),
                 )
             );
