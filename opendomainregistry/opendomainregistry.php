@@ -1044,7 +1044,7 @@ class opendomainregistry implements IRegistrar
      *
      * @return bool
      */
-    public function reset($test = false)
+    public function reset()
     {
         if (!$this->AccessToken && !empty($_SESSION['wf_odr_access_token'])) {
             $this->AccessToken = $_SESSION['wf_odr_access_token'];
