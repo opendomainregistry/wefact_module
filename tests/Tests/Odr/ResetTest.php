@@ -11,7 +11,7 @@ class ResetTest extends UnitTestCase
 
         $this->getSecureProperty($wefact, 'AccessToken')->setValue($wefact, true);
 
-        self::assertFalse($wefact->reset());
+        self::assertTrue($wefact->reset());
     }
 
     public function testInvalidFormat()

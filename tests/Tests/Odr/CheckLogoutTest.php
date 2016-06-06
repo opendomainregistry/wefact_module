@@ -24,6 +24,6 @@ class CheckLogoutTest extends UnitTestCase
 
         self::assertNull($method->invoke($wefact, true));
 
-        self::assertFalse($token->getValue($wefact));
+        self::assertTrue($token->getValue($wefact));
     }
 }
