@@ -201,6 +201,18 @@ class Api_Odr
     }
 
     /**
+     * Return current user data
+     *
+     * @return Api_Odr
+     *
+     * @throws Api_Odr_Exception
+     */
+    public function getMe()
+    {
+        return $this->_execute('/user/', self::METHOD_GET);
+    }
+
+    /**
      * Check if domain is available or not
      *
      * @param string|int $domain Either ID or domain name
@@ -497,7 +509,9 @@ class Api_Odr
             $headers = array();
 
             foreach ($this->_headers as $k => $v) {
-                $headers[] = $k .': '. $v;
+                if ($v) {
+                    $headers[] = $k . ': ' . $v;
+                }
             }
 
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -510,6 +524,8 @@ class Api_Odr
         if (empty($this->_error)) {
             $this->_result = json_decode($result, true);
         }
+
+        $this->log('Executed [' . $method . '] ' . $url);
 
         curl_close($ch);
 
@@ -584,6 +600,27 @@ class Api_Odr
     public function updateContact($handle, array $data)
     {
         return $this->custom('/contact/' . $handle, Api_Odr::METHOD_PUT, $data);
+    }
+
+    public function log($message, $prio = 'normal')
+    {
+        return true;
+
+        $file = __DIR__ .'/log/api' . date('Ymd_H') .'.log';
+
+        if (!is_readable($file)) {
+            if (!is_dir(dirname($file))) {
+                mkdir(dirname($file), 0777, true);
+            }
+        }
+
+        $data = json_encode($this->getResult());
+
+        $to = <<<MESSAGE
+[{$prio}] {$message} {$data}
+MESSAGE;
+
+        error_log($to . "\r\n", 3, $file);
     }
 }
 

@@ -120,6 +120,10 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']);
         }
 
+        if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
+            return $this->parseError($result['response']['data']['message']);
+        }
+
         return (bool)$result['response']['is_available'];
     }
 
@@ -142,7 +146,9 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $tld = substr(stristr($domain, '.'), 1);
+        $exploded = explode('.', $domain, 2);
+
+        $tld = $exploded[1];
 
         $ownerHandle = $this->_obtainHandle($domain, $whois, HANDLE_OWNER);
 
@@ -197,6 +203,16 @@ class opendomainregistry implements IRegistrar
             $this->Error[] = $e->getMessage();
 
             return false;
+        }
+
+        $result = $this->odr->getResult();
+
+        if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
+            return $this->parseError($result['response']);
+        }
+
+        if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
+            return $this->parseError($result['response']['data']['message']);
         }
 
         return $this->_checkResult(true, $loggedIn);
@@ -276,6 +292,16 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
+        $result = $this->odr->getResult();
+
+        if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
+            return $this->parseError($result['response']);
+        }
+
+        if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
+            return $this->parseError($result['response']['data']['message']);
+        }
+
         return $this->_checkResult(true, $loggedIn);
     }
 
@@ -325,6 +351,16 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
+        $result = $this->odr->getResult();
+
+        if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
+            return $this->parseError($result['response']);
+        }
+
+        if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
+            return $this->parseError($result['response']['data']['message']);
+        }
+
         return $this->_checkResult(true, $loggedIn);
     }
 
@@ -353,11 +389,15 @@ class opendomainregistry implements IRegistrar
 
         $result = $this->odr->getResult();
 
-        $this->_checkLogout($loggedIn);
-
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
         }
+
+        if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
+            return $this->parseError($result['response']['data']['message']);
+        }
+
+        $this->_checkLogout($loggedIn);
 
         $response = $result['response'];
 
@@ -429,6 +469,10 @@ class opendomainregistry implements IRegistrar
 
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
+        }
+
+        if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
+            return $this->parseError($result['response']['data']['message']);
         }
 
         $domains = array();
@@ -586,7 +630,7 @@ class opendomainregistry implements IRegistrar
 
     /**
      * Update the domain Whois data, but only if no handles are used by the registrar
-     * 
+     *
      * @param mixed $domain
      * @param Whois $whois
      *
@@ -725,7 +769,7 @@ class opendomainregistry implements IRegistrar
 
         $result = $this->odr->getResult();
 
-        return $this->_checkResult(empty($result['response']['id']) ? false : $result['response']['id'], $loggedIn);
+        return $this->_checkResult(empty($result['response']['data']['id']) ? false : $result['response']['data']['id'], $loggedIn);
     }
 
     /**
@@ -777,7 +821,7 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $whois = new Whois();
+        $whois = new Whois;
 
         try {
             $this->odr->getContact($handle);
@@ -838,13 +882,13 @@ class opendomainregistry implements IRegistrar
         }
 
         foreach ($contacts as $contact) {
-            if ($contact['CompanyName'] === trim($whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'})) {
+            if (strpos($contact['CompanyName'], trim($whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'})) !== false) {
                 $toCheck[] = $contact['Handle'];
             }
         }
 
         $contacts = $toCheck;
-        
+
         foreach ($contacts as $contactId) {
             $contact = $this->getContact($contactId);
 
@@ -906,7 +950,7 @@ class opendomainregistry implements IRegistrar
         foreach ($result['response'] as $contact) {
             $contacts[] = array(
                 'Handle'      => $contact['id'],
-                'CompanyName' => $contact['organization_legal_form'] === 'PERSOON' ? $contact['full_name'] : $contact['company_name'],
+                'CompanyName' => $contact['name'],
             );
         }
 
@@ -995,10 +1039,15 @@ class opendomainregistry implements IRegistrar
         return include self::$_versionFile;
     }
 
-    public function reset()
+    /**
+     * Resets the session, if access token exists, tries to use it
+     *
+     * @return bool
+     */
+    public function reset($test = false)
     {
-        if ($this->AccessToken) {
-            return false;
+        if (!$this->AccessToken && !empty($_SESSION['wf_odr_access_token'])) {
+            $this->AccessToken = $_SESSION['wf_odr_access_token'];
         }
 
         if (strpos($this->User, 'public$') !== 0) {
@@ -1015,6 +1064,26 @@ class opendomainregistry implements IRegistrar
             $this->odr = new Api_Odr($config);
         }
 
+        if ($this->AccessToken && is_string($this->AccessToken)) {
+            try {
+                $this->odr->setHeader('X-Access-Token', $this->AccessToken);
+
+                $this->odr->getMe();
+            } catch (Api_Odr_Exception $e) {
+                if (!empty($_SESSION['wf_odr_access_token'])) {
+                    unset($_SESSION['wf_odr_access_token']);
+                }
+
+                $this->AccessToken = false;
+
+                $this->odr->setHeader('X-Access-Token', null);
+            }
+
+            if ($this->AccessToken) {
+                return true;
+            }
+        }
+
         try {
             $this->odr->login();
 
@@ -1026,12 +1095,19 @@ class opendomainregistry implements IRegistrar
 
             $this->AccessToken = $loginResult['response']['token'];
 
-            return true;
+            $_SESSION['wf_odr_access_token'] = $this->AccessToken;
         } catch(Api_Odr_Exception $e) {
             $this->Error[] = $e->getMessage();
 
             return false;
         }
+
+        return true;
+    }
+
+    public function getAccessToken()
+    {
+        return $this->AccessToken;
     }
 
     /**
@@ -1094,6 +1170,10 @@ class opendomainregistry implements IRegistrar
 
         $this->_checkLogout($isLogout);
 
+        if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
+            return $this->parseError($result['response']['data']['message']);
+        }
+
         if ($result['status'] === Api_Odr::STATUS_SUCCESS) {
             return $value;
         }
@@ -1115,6 +1195,7 @@ class opendomainregistry implements IRegistrar
 
     /**
      * Checks access token and performs logout on request
+     * Temporary disabled, to keep access token in session
      *
      * @param bool $isLogout Should logout be performed or not
      *
@@ -1122,6 +1203,8 @@ class opendomainregistry implements IRegistrar
      */
     protected function _checkLogout($isLogout)
     {
+        return;
+
         if (!$isLogout) {
             return;
         }
