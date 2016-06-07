@@ -17,7 +17,8 @@ class opendomainregistry implements IRegistrar
 
     public $Period = 1;
 
-    public $registrarHandles = array();
+    public $registrarHandles       = array();
+    public $registrarHandlesMapped = array();
 
     /**
      * @var null|int
@@ -1208,11 +1209,15 @@ class opendomainregistry implements IRegistrar
     {
         $prefix = $this->_getContactPrefix($key);
 
-        // Check if a registrar-specific ownerhandle for this domain already exists.
-        if ($whois !== null && isset($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName])) {
-            $handle = $whois->{$prefix . 'RegistrarHandles'}[$this->ClassName];
+        // Check if a registrar-specific handle for this domain already exists
+        if ($whois !== null && (isset($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName]) || !empty($this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}]))) {
+            $handle = empty($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName]) ? $this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}] : $whois->{$prefix . 'RegistrarHandles'}[$this->ClassName];
+
+            if (empty($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName])) {
+                $whois->{$prefix . 'RegistrarHandles'}[$this->ClassName] = $this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}];
+            }
         }
-        // If not, check if WHOIS-data for owner contact is available to search or create new handle
+        // If not, check if WHOIS-data for contact is available to search or create new handle
         elseif ($whois !== null && $whois->{$prefix . 'SurName'} != '') {
             // Search for existing handle, based on WHOIS data
             $handle = $this->getContactHandle($whois, $key);
@@ -1223,7 +1228,8 @@ class opendomainregistry implements IRegistrar
             }
 
             // If a new handle is created or found, store in array. WeFact will store this data, which will result in faster registration next time
-            $this->registrarHandles[$prefix] = $handle;
+            $this->registrarHandles[$prefix]                                  = $handle;
+            $this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}] = $handle;
         } else {
             // If no handle can be created, because data is missing, quit function
             return $this->parseError(sprintf("No domain {$prefix} contact given for domain '%s'.", $domain));
