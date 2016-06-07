@@ -178,22 +178,7 @@ class opendomainregistry implements IRegistrar
             'auth_code'          => substr(md5(time()), 0, 6),
         );
 
-        foreach (range(1, 8) as $r) {
-            if (empty($nameservers["ns{$r}"])) {
-                continue;
-            }
-
-            $ns = array(
-                'host' => $nameservers["ns{$r}"],
-                'ip'   => null,
-            );
-
-            if (!empty($nameservers["ns{$r}ip"]) && strpos($ns['host'], $domain)) {
-                $ns['ip'] = $nameservers["ns{$r}ip"];
-            }
-
-            $parameters["ns{$r}"] = $ns;
-        }
+        $parameters = array_merge($parameters, $this->convertNameservers($domain, $nameservers));
 
         try {
             $this->odr->registerDomain($domain, $parameters);
@@ -263,22 +248,7 @@ class opendomainregistry implements IRegistrar
             'auth_code'          => $authcode,
         );
 
-        foreach (range(1, 8) as $r) {
-            if (empty($nameservers["ns{$r}"])) {
-                continue;
-            }
-
-            $ns = array(
-                'host' => $nameservers["ns{$r}"],
-                'ip'   => null,
-            );
-
-            if (!empty($nameservers["ns{$r}ip"]) && strpos($ns['host'], $domain)) {
-                $ns['ip'] = $nameservers["ns{$r}ip"];
-            }
-
-            $parameters["ns{$r}"] = $ns;
-        }
+        $parameters = array_merge($parameters, $this->convertNameservers($domain, $nameservers));
 
         try {
             $this->odr->transferDomain($domain, $parameters);
@@ -481,6 +451,8 @@ class opendomainregistry implements IRegistrar
 
     /**
      * Change the lock status of the specified domain
+     * Warning! Open Domain Registry does NOT support locking domains, because we're using authorization codes
+     * We might add this feature in the future, though
      *
      * @param string $domain The domain to change the lock state for
      * @param bool   $isLock New lock state
@@ -490,6 +462,14 @@ class opendomainregistry implements IRegistrar
     public function lockDomain($domain, $isLock = true)
     {
         return $this->parseError('Helaas bezit de API van ODR geen mogelijkheid om domeinnamen te locken. Er wordt niets uitgevoerd.');
+
+        if (!$this->_checkLogin()) {
+            return false;
+        }
+
+        $this->odr->lockDomain($domain, $isLock);
+
+        return $this->_checkResult(true);
     }
 
     /**
@@ -1315,5 +1295,35 @@ class opendomainregistry implements IRegistrar
             'company_vatin'           => $whois->{$prefix . 'TaxNumber'},
             'organization_legal_form' => $legalForm,
         );
+    }
+
+    /**
+     * @param string $domain
+     * @param array  $nameservers
+     *
+     * @return array
+     */
+    public function convertNameservers($domain, array $nameservers)
+    {
+        $parameters = array();
+
+        foreach (range(1, 8) as $r) {
+            if (empty($nameservers["ns{$r}"])) {
+                continue;
+            }
+
+            $ns = array(
+                'host' => $nameservers["ns{$r}"],
+                'ip'   => null,
+            );
+
+            if (!empty($nameservers["ns{$r}ip"]) && strpos($ns['host'], $domain)) {
+                $ns['ip'] = $nameservers["ns{$r}ip"];
+            }
+
+            $parameters["ns{$r}"] = $ns;
+        }
+
+        return $parameters;
     }
 }
