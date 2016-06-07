@@ -140,9 +140,7 @@ class opendomainregistry implements IRegistrar
      */
     public function registerDomain($domain, $nameservers = array(), $whois = null)
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -215,7 +213,7 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']['data']['message']);
         }
 
-        return $this->_checkResult(true, $loggedIn);
+        return $this->_checkResult(true);
     }
 
     /**
@@ -232,9 +230,7 @@ class opendomainregistry implements IRegistrar
      */
     public function transferDomain($domain, $nameservers = array(), $whois = null, $authcode = '')
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -302,7 +298,7 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']['data']['message']);
         }
 
-        return $this->_checkResult(true, $loggedIn);
+        return $this->_checkResult(true);
     }
 
     /**
@@ -315,9 +311,7 @@ class opendomainregistry implements IRegistrar
      */
     public function deleteDomain($domain, $delType = 'end')
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -361,7 +355,7 @@ class opendomainregistry implements IRegistrar
             return $this->parseError($result['response']['data']['message']);
         }
 
-        return $this->_checkResult(true, $loggedIn);
+        return $this->_checkResult(true);
     }
 
     /**
@@ -373,9 +367,7 @@ class opendomainregistry implements IRegistrar
      */
     public function getDomainInformation($domain)
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -396,8 +388,6 @@ class opendomainregistry implements IRegistrar
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
             return $this->parseError($result['response']['data']['message']);
         }
-
-        $this->_checkLogout($loggedIn);
 
         $response = $result['response'];
 
@@ -443,9 +433,7 @@ class opendomainregistry implements IRegistrar
      */
     public function getDomainList($contactHandle = '')
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -464,8 +452,6 @@ class opendomainregistry implements IRegistrar
         $this->odr->getDomains($filter);
 
         $result = $this->odr->getResult();
-
-        $this->_checkLogout($loggedIn);
 
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
@@ -504,16 +490,6 @@ class opendomainregistry implements IRegistrar
     public function lockDomain($domain, $isLock = true)
     {
         return $this->parseError('Helaas bezit de API van ODR geen mogelijkheid om domeinnamen te locken. Er wordt niets uitgevoerd.');
-
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
-            return false;
-        }
-
-        $this->odr->lockDomain($domain, $isLock);
-
-        return $this->_checkResult(true, $loggedIn);
     }
 
     /**
@@ -526,9 +502,7 @@ class opendomainregistry implements IRegistrar
      */
     public function setDomainAutoRenew($domain, $autorenew = true)
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -545,8 +519,6 @@ class opendomainregistry implements IRegistrar
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']['message'], $result['code']);
         }
-
-        $this->_checkLogout($loggedIn);
 
         // Autorenew method always return true if no error happened
         return true;
@@ -640,9 +612,7 @@ class opendomainregistry implements IRegistrar
      */
     public function updateDomainWhois($domain, $whois)
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -692,7 +662,7 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        return $this->_checkResult(true, $loggedIn);
+        return $this->_checkResult(true);
     }
 
     /**
@@ -706,9 +676,7 @@ class opendomainregistry implements IRegistrar
      */
     public function getDomainWhois($domain)
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -721,8 +689,6 @@ class opendomainregistry implements IRegistrar
         }
 
         $result = $this->odr->getResult();
-
-        $this->_checkLogout($loggedIn);
 
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
@@ -751,9 +717,7 @@ class opendomainregistry implements IRegistrar
      */
     public function createContact($whois, $type = HANDLE_OWNER)
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -769,7 +733,7 @@ class opendomainregistry implements IRegistrar
 
         $result = $this->odr->getResult();
 
-        return $this->_checkResult(empty($result['response']['data']['id']) ? false : $result['response']['data']['id'], $loggedIn);
+        return $this->_checkResult(empty($result['response']['data']['id']) ? false : $result['response']['data']['id']);
     }
 
     /**
@@ -783,9 +747,7 @@ class opendomainregistry implements IRegistrar
      */
     public function updateContact($handle, $whois, $type = HANDLE_OWNER)
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -799,7 +761,7 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        return $this->_checkResult(true, $loggedIn);
+        return $this->_checkResult(true);
     }
 
     /**
@@ -811,13 +773,7 @@ class opendomainregistry implements IRegistrar
      */
     public function getContact($handle)
     {
-        if (!$handle) {
-            return false;
-        }
-
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$handle || !$this->_checkLogin()) {
             return false;
         }
 
@@ -833,19 +789,17 @@ class opendomainregistry implements IRegistrar
 
         $result = $this->odr->getResult();
 
-        $this->_checkLogout($loggedIn);
-
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
         }
 
         $response = $result['response'];
 
-        $whois->ownerCompanyName      = $response['organization_legal_form'] === 'PERSOON' ? $response['full_name'] : $response['company_name'];
+        $whois->ownerCompanyName      = $response['full_name'];
         $whois->ownerTaxNumber        = empty($response['company_vatin']) ? null : $response['company_vatin'];
         $whois->ownerCompanyLegalForm = $response['organization_legal_form'];
 
-        $whois->ownerSex      = ($response['gender'] === 'FEMALE' ? 'f' : 'm');
+        $whois->ownerSex      = $response['gender'] === 'FEMALE' ? 'f' : 'm';
         $whois->ownerInitials = $response['initials'];
         $whois->ownerSurName  = $response['last_name'];
         $whois->ownerAddress  = $response['street'] . ' ' . $response['house_number'];
@@ -917,9 +871,7 @@ class opendomainregistry implements IRegistrar
      */
     public function getContactList($surname = '')
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -938,8 +890,6 @@ class opendomainregistry implements IRegistrar
         }
 
         $result = $this->odr->getResult();
-
-        $this->_checkLogout($loggedIn);
 
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
@@ -967,9 +917,7 @@ class opendomainregistry implements IRegistrar
      */
     public function updateNameServers($domain, $nameservers = array())
     {
-        $loggedIn = $this->_checkLogin();
-
-        if (!$loggedIn) {
+        if (!$this->_checkLogin()) {
             return false;
         }
 
@@ -1023,7 +971,7 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        return $this->_checkResult(true, $loggedIn);
+        return $this->_checkResult(true);
     }
 
     /**
@@ -1168,7 +1116,9 @@ class opendomainregistry implements IRegistrar
     {
         $result = $this->odr->getResult();
 
-        $this->_checkLogout($isLogout);
+        if ($isLogout) {
+            $this->_checkLogout($isLogout);
+        }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
             return $this->parseError($result['response']['data']['message']);
