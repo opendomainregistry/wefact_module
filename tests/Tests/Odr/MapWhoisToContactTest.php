@@ -14,14 +14,18 @@ class MapWhoisToContactTest extends UnitTestCase
 
         $prefix = 'owner';
 
-        $whois->{$prefix . 'State'} = 'Noord-Brabant';
+        $custs = array(
+            'state' => 'Noord-Brabant',
+        );
+
+        $whois->{$prefix . 'customvalues'} = $custs;
 
         $expected = array(
             'first_name'              => null,
             'last_name'               => null,
             'full_name'               => '',
             'initials'                => null,
-            'state'                   => $whois->{$prefix . 'State'},
+            'state'                   => 'Noord-Brabant',
             'city'                    => null,
             'postal_code'             => '',
             'phone'                   => '.',
@@ -30,16 +34,17 @@ class MapWhoisToContactTest extends UnitTestCase
             'language'                => 'NL',
             'gender'                  => 'NA',
             'street'                  => null,
-            'house_number'            => '',
+            'house_number'            => ' ',
             'company_name'            => '',
             'company_email'           => null,
             'company_street'          => null,
-            'company_house_number'    => '',
+            'company_house_number'    => ' ',
             'company_postal_code'     => '',
             'company_city'            => null,
             'company_phone'           => '.',
             'company_vatin'           => null,
             'organization_legal_form' => 'PERSOON',
+            'type'                    => 'REGISTRANT',
         );
 
         self::assertEquals($expected, $wefact->mapWhoisToContact($whois, HANDLE_OWNER));
@@ -52,14 +57,18 @@ class MapWhoisToContactTest extends UnitTestCase
 
         $prefix = 'owner';
 
-        $whois->{$prefix . 'Region'} = 'Noord-Brabant';
+        $custs = array(
+            'region' => 'Noord-Brabant2',
+        );
+
+        $whois->{$prefix . 'customvalues'} = $custs;
 
         $expected = array(
             'first_name'              => null,
             'last_name'               => null,
             'full_name'               => '',
             'initials'                => null,
-            'state'                   => $whois->{$prefix . 'Region'},
+            'state'                   => 'Noord-Brabant2',
             'city'                    => null,
             'postal_code'             => '',
             'phone'                   => '.',
@@ -68,16 +77,17 @@ class MapWhoisToContactTest extends UnitTestCase
             'language'                => 'NL',
             'gender'                  => 'NA',
             'street'                  => null,
-            'house_number'            => '',
+            'house_number'            => ' ',
             'company_name'            => '',
             'company_email'           => null,
             'company_street'          => null,
-            'company_house_number'    => '',
+            'company_house_number'    => ' ',
             'company_postal_code'     => '',
             'company_city'            => null,
             'company_phone'           => '.',
             'company_vatin'           => null,
             'organization_legal_form' => 'PERSOON',
+            'type'                    => 'REGISTRANT',
         );
 
         self::assertEquals($expected, $wefact->mapWhoisToContact($whois, HANDLE_OWNER));
@@ -90,15 +100,19 @@ class MapWhoisToContactTest extends UnitTestCase
 
         $prefix = 'owner';
 
-        $whois->{$prefix . 'State'}  = 'Noord-Brabant';
-        $whois->{$prefix . 'Region'} = 'Noord-Brabant2';
+        $custs = array(
+            'state'  => 'Noord-Brabant',
+            'region' => 'Noord-Brabant2',
+        );
+
+        $whois->{$prefix . 'customvalues'} = $custs;
 
         $expected = array(
             'first_name'              => null,
             'last_name'               => null,
             'full_name'               => '',
             'initials'                => null,
-            'state'                   => $whois->{$prefix . 'State'},
+            'state'                   => 'Noord-Brabant',
             'city'                    => null,
             'postal_code'             => '',
             'phone'                   => '.',
@@ -107,16 +121,17 @@ class MapWhoisToContactTest extends UnitTestCase
             'language'                => 'NL',
             'gender'                  => 'NA',
             'street'                  => null,
-            'house_number'            => '',
+            'house_number'            => ' ',
             'company_name'            => '',
             'company_email'           => null,
             'company_street'          => null,
-            'company_house_number'    => '',
+            'company_house_number'    => ' ',
             'company_postal_code'     => '',
             'company_city'            => null,
             'company_phone'           => '.',
             'company_vatin'           => null,
             'organization_legal_form' => 'PERSOON',
+            'type'                    => 'REGISTRANT',
         );
 
         self::assertEquals($expected, $wefact->mapWhoisToContact($whois, HANDLE_OWNER));

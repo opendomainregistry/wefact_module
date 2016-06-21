@@ -1296,13 +1296,24 @@ class opendomainregistry implements IRegistrar
             $gender = strtoupper($whois->{$prefix . 'Sex'}) === 'F' ? 'FEMALE' : 'MALE';
         }
 
+        $custs = empty($whois->{$prefix .'customvalues'}) ? array() : $whois->{$prefix .'customvalues'};
+
+        $state = null;
+
+        if (!empty($custs['state'])) {
+            $state = $custs['state'];
+        } elseif (!empty($custs['region'])) {
+            $state = $custs['region'];
+        }
+
         return array(
+            'type'                    => $this->mapContactPrefixToOdr($prefix),
             'first_name'              => $whois->{$prefix . 'Initials'},
             'last_name'               => $whois->{$prefix . 'SurName'},
             'full_name'               => trim($whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'}),
             'initials'                => $whois->{$prefix . 'Initials'},
             //birthday
-            'state'                   => isset($whois->{$prefix . 'State'}) ? $whois->{$prefix . 'State'} : $whois->{$prefix . 'Region'},
+            'state'                   => $state,
             'city'                    => $whois->{$prefix . 'City'},
             'postal_code'             => strtoupper(str_replace(' ', '', $whois->{$prefix . 'ZipCode'})),
             'phone'                   => $whois->{$prefix . 'CountryCode'} . '.' . str_replace(' ', '', $whois->{$prefix . 'PhoneNumber'}),
@@ -1311,12 +1322,12 @@ class opendomainregistry implements IRegistrar
             'language'                => 'NL',
             'gender'                  => $gender,
             'street'                  => $whois->{$prefix . 'StreetName'},
-            'house_number'            => trim($whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'}),
+            'house_number'            => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
             //url
             'company_name'            => $whois->{$prefix . 'CompanyName'} ?: trim($whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'}),
             'company_email'           => $whois->{$prefix . 'EmailAddress'},
             'company_street'          => $whois->{$prefix . 'StreetName'},
-            'company_house_number'    => trim($whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'}),
+            'company_house_number'    => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
             'company_postal_code'     => strtoupper(str_replace(' ', '', $whois->{$prefix . 'ZipCode'})),
             'company_city'            => $whois->{$prefix . 'City'},
             'company_phone'           => $whois->{$prefix . 'CountryCode'} . '.' . str_replace(' ', '', $whois->{$prefix . 'PhoneNumber'}),
@@ -1356,5 +1367,33 @@ class opendomainregistry implements IRegistrar
         }
 
         return $parameters;
+    }
+
+    /**
+     * Maps contact to ODR
+     *
+     * @param string $prefix
+     *
+     * @return string
+     */
+    public function mapContactPrefixToOdr($prefix)
+    {
+        switch ($prefix) {
+            case 'owner':
+                    return 'REGISTRANT';
+                break;
+            case 'tech':
+                    return 'TECH';
+                break;
+            case 'admin':
+                    return 'ONSITE';
+                break;
+            case 'reseller':
+                    return 'RESELLER';
+                break;
+            default:
+                    return strtoupper($prefix);
+                break;
+        }
     }
 }
