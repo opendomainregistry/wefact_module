@@ -8,6 +8,8 @@ class opendomainregistry implements IRegistrar
     const URL_LIVE = 'https://api.opendomainregistry.net';
     const URL_TEST = 'http://api.odrregistry.nl';
 
+    const ODR_TOKEN_SESSION = 'wf_odr_access_token';
+
     public $User;
     public $Password;
 
@@ -72,6 +74,12 @@ class opendomainregistry implements IRegistrar
         $this->_registrarId = $pdoStatement->fetch()->id;
     }
 
+    /**
+     * Returns either NULL or array of available TLDs
+     * Helpful for domain synchronization, that was ODR will filter only supported TLDs, less time for you, less requests for us
+     *
+     * @return array|null
+     */
     public function getAvailableTlds()
     {
         if ($this->_availableTlds !== null) {
@@ -788,6 +796,8 @@ class opendomainregistry implements IRegistrar
         $whois->ownerCity     = $response['city'];
 
         $whois->ownerCountry      = $response['country'];
+        $whois->ownerState        = $response['state'];
+        $whois->ownerRegion       = $response['state'];
         $whois->ownerPhoneNumber  = $response['phone'];
         $whois->ownerFaxNumber    = $response['fax'];
         $whois->ownerEmailAddress = $response['email'];
@@ -975,8 +985,8 @@ class opendomainregistry implements IRegistrar
      */
     public function reset()
     {
-        if (!$this->AccessToken && !empty($_SESSION['wf_odr_access_token'])) {
-            $this->AccessToken = $_SESSION['wf_odr_access_token'];
+        if (!$this->AccessToken && !empty($_SESSION[self::ODR_TOKEN_SESSION])) {
+            $this->AccessToken = $_SESSION[self::ODR_TOKEN_SESSION];
         }
 
         if (strpos($this->User, 'public$') !== 0) {
@@ -999,8 +1009,8 @@ class opendomainregistry implements IRegistrar
 
                 $this->odr->getMe();
             } catch (Api_Odr_Exception $e) {
-                if (!empty($_SESSION['wf_odr_access_token'])) {
-                    unset($_SESSION['wf_odr_access_token']);
+                if (!empty($_SESSION[self::ODR_TOKEN_SESSION])) {
+                    unset($_SESSION[self::ODR_TOKEN_SESSION]);
                 }
 
                 $this->AccessToken = false;
@@ -1024,7 +1034,7 @@ class opendomainregistry implements IRegistrar
 
             $this->AccessToken = $loginResult['response']['token'];
 
-            $_SESSION['wf_odr_access_token'] = $this->AccessToken;
+            $_SESSION[self::ODR_TOKEN_SESSION] = $this->AccessToken;
         } catch(Api_Odr_Exception $e) {
             $this->Error[] = $e->getMessage();
 
@@ -1034,6 +1044,11 @@ class opendomainregistry implements IRegistrar
         return true;
     }
 
+    /**
+     * Returns current access token or FALSE, in case access token not defined
+     *
+     * @return bool|string
+     */
     public function getAccessToken()
     {
         return $this->AccessToken;
@@ -1126,7 +1141,7 @@ class opendomainregistry implements IRegistrar
 
     /**
      * Checks access token and performs logout on request
-     * Temporary disabled, to keep access token in session
+     * Temporary disabled, to keep access token in session, should speed things up significantly
      *
      * @param bool $isLogout Should logout be performed or not
      *
@@ -1257,6 +1272,14 @@ class opendomainregistry implements IRegistrar
         return (!$whois->{$prefix . 'CompanyLegalForm'} || substr($whois->{$prefix . 'CompanyLegalForm'}, 0, 3) === 'BE-') ? 'ANDERS' : $whois->{$prefix . 'CompanyLegalForm'};
     }
 
+    /**
+     * Maps WeFact Whois object to ODR contact format
+     *
+     * @param Whois $whois Whois object
+     * @param mixed $type  Contact Type
+     *
+     * @return array
+     */
     public function mapWhoisToContact(Whois $whois, $type)
     {
         $prefix = $this->_getContactPrefix($type);
@@ -1276,10 +1299,10 @@ class opendomainregistry implements IRegistrar
         return array(
             'first_name'              => $whois->{$prefix . 'Initials'},
             'last_name'               => $whois->{$prefix . 'SurName'},
-            'full_name'               => $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},
+            'full_name'               => trim($whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'}),
             'initials'                => $whois->{$prefix . 'Initials'},
             //birthday
-            //state
+            'state'                   => isset($whois->{$prefix . 'State'}) ? $whois->{$prefix . 'State'} : $whois->{$prefix . 'Region'},
             'city'                    => $whois->{$prefix . 'City'},
             'postal_code'             => strtoupper(str_replace(' ', '', $whois->{$prefix . 'ZipCode'})),
             'phone'                   => $whois->{$prefix . 'CountryCode'} . '.' . str_replace(' ', '', $whois->{$prefix . 'PhoneNumber'}),
@@ -1288,12 +1311,12 @@ class opendomainregistry implements IRegistrar
             'language'                => 'NL',
             'gender'                  => $gender,
             'street'                  => $whois->{$prefix . 'StreetName'},
-            'house_number'            => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
+            'house_number'            => trim($whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'}),
             //url
-            'company_name'            => ($whois->{$prefix . 'CompanyName'}) ?: $whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'},
+            'company_name'            => $whois->{$prefix . 'CompanyName'} ?: trim($whois->{$prefix . 'Initials'} . ' ' . $whois->{$prefix . 'SurName'}),
             'company_email'           => $whois->{$prefix . 'EmailAddress'},
             'company_street'          => $whois->{$prefix . 'StreetName'},
-            'company_house_number'    => $whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'},
+            'company_house_number'    => trim($whois->{$prefix . 'StreetNumber'} . ' ' . $whois->{$prefix . 'StreetNumberAddon'}),
             'company_postal_code'     => strtoupper(str_replace(' ', '', $whois->{$prefix . 'ZipCode'})),
             'company_city'            => $whois->{$prefix . 'City'},
             'company_phone'           => $whois->{$prefix . 'CountryCode'} . '.' . str_replace(' ', '', $whois->{$prefix . 'PhoneNumber'}),
@@ -1304,6 +1327,8 @@ class opendomainregistry implements IRegistrar
     }
 
     /**
+     * Converts nameservers from WeFact format ("ns1" for host, "ns1ip" for IP) to array format (array("host" for host, "ip" for IP))
+     *
      * @param string $domain
      * @param array  $nameservers
      *

@@ -36,7 +36,7 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase
 
         $this->_isLoaded = true;
 
-        $_SESSION['wf_odr_access_token'] = null;
+        $_SESSION[Module::ODR_TOKEN_SESSION] = null;
     }
 
     /**

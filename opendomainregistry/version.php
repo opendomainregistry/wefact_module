@@ -3,8 +3,8 @@ $version = array();
 
 $version['name']           = 'Open Domain Registry';
 $version['api_version']    = '3.2';
-$version['date']           = '2016-01-15';
-$version['wefact_version'] = '3.8';
+$version['date']           = '2016-06-21';
+$version['wefact_version'] = '3.9';
 
 $version['dev_logo']    = 'http://www.opendomainregistry.net/assets/img/frontend/logotype.png';
 $version['dev_author']  = 'Open Domain Registry';
@@ -28,6 +28,7 @@ return $version;
 /**
  * Changelog
  *
+ * 3.9 - Added state/region to contacts
  * 3.8 - Update in ODR API
  * 3.7 - Nieuwe API URL
  * 3.6 - Nieuwe ODR API
