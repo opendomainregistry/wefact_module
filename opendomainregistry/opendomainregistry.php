@@ -802,6 +802,11 @@ class opendomainregistry implements IRegistrar
         $whois->ownerFaxNumber    = $response['fax'];
         $whois->ownerEmailAddress = $response['email'];
 
+        $whois->ownercustomvalues = array(
+            'state'  => $response['state'],
+            'region' => $response['state'],
+        );
+
         return $whois;
     }
 
