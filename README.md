@@ -1,5 +1,5 @@
 Open Domain Registry module for WeFact
-===================
+======================================
 
 Adds support for Open Domain Registry at WeFact.
 Maintained by Open Domain Registry team.
@@ -11,7 +11,7 @@ Maintained by Open Domain Registry team.
 ----------
 
 Installation
--------------
+------------
 
  1. Be sure that WeFact is already installed on the server or follow instructions here;
  2. Download the latest release and unzip it to **Pro/3rdparty/domain/opendomainregistry**. Be sure, that all files are located inside **opendomainregistry** folder;
@@ -25,7 +25,12 @@ Installation
 > Depending on the Test mode setting, different URLs to access API will be used. Even if you have user on both staging and live, they will probably have completely different API key and API secret.
 
 Support
-----------
+-------
 
 If you want to get help right away, please use contact data in either WeFact module page or on main [Open Domain Registry](http://www.opendomainregistry.net/) page.
 You can also create issue on Github, we check those too!
+
+Important
+---------
+
+Please, be sure to add "State" input field. [How to do that?](https://github.com/opendomainregistry/wefact_module/wiki/How-to-add-"State"%3F)
