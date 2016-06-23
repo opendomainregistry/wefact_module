@@ -802,6 +802,11 @@ class opendomainregistry implements IRegistrar
         $whois->ownerFaxNumber    = $response['fax'];
         $whois->ownerEmailAddress = $response['email'];
 
+        $whois->ownercustom = array(
+            'state'  => $response['state'],
+            'region' => $response['state'],
+        );
+
         $whois->ownercustomvalues = array(
             'state'  => $response['state'],
             'region' => $response['state'],
@@ -1073,6 +1078,14 @@ class opendomainregistry implements IRegistrar
             $message = $message['message'];
         }
 
+        if ($message instanceof Exception) {
+            $message = $message->getMessage();
+        }
+
+        if (empty($message)) {
+            $message = 'Unknown error happened, sorry about that';
+        }
+
         $this->Error[] = 'ODR: ' . ($code ? $code . ' - ' : '') . $message;
 
         return false;
@@ -1303,12 +1316,18 @@ class opendomainregistry implements IRegistrar
 
         $custs = empty($whois->{$prefix .'customvalues'}) ? array() : $whois->{$prefix .'customvalues'};
 
-        $state = null;
+        if (empty($custs) && !empty($whois->{$prefix .'custom'})) {
+            $custs = $whois->{$prefix .'custom'};
+        }
 
-        if (!empty($custs['state'])) {
-            $state = $custs['state'];
-        } elseif (!empty($custs['region'])) {
-            $state = $custs['region'];
+        $state = empty($whois->{$prefix .'State'}) ? null : $whois->{$prefix .'State'};
+
+        if ($state === null) {
+            if (isset($custs['state'])) {
+                $state = $custs['state'];
+            } elseif (isset($custs['region'])) {
+                $state = $custs['region'];
+            }
         }
 
         return array(
