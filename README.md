@@ -13,7 +13,7 @@ Maintained by Open Domain Registry team.
 Installation
 ------------
 
- 1. Be sure that WeFact is already installed on the server or follow instructions here;
+ 1. Be sure that WeFact is already installed on the server;
  2. Download the latest release and unzip it to **Pro/3rdparty/domain/opendomainregistry**. Be sure, that all files are located inside **opendomainregistry** folder;
  3. After extracting, visit your WeFact installation and go to *Management* > *Services* > *Registrars*, find **opendomainregistry** and edit it.
  4. You need to modify the *Username* and *Password* in **Integration settings** and paste your *API Key* and *API Secret* from Open Domain Registry.
