@@ -422,6 +422,8 @@ class opendomainregistry implements IRegistrar
             $filter['contact'] = $contactHandle;
         }
 
+        $filter['status_not'] = 'DELETED';
+
         $tlds = $this->getAvailableTlds();
 
         if (!empty($tlds)) {
