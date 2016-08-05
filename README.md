@@ -4,11 +4,6 @@ Open Domain Registry module for WeFact
 Adds support for Open Domain Registry at WeFact.
 Maintained by Open Domain Registry team.
 
-> **Warning!**
-
-> This is a preview version, it's not supposed to be used in live environment yet. There still can be some bugs.
-
-----------
 
 Installation
 ------------
