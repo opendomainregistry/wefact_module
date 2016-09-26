@@ -14,7 +14,6 @@ class DeleteDomainTest extends UnitTestCase
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -31,7 +30,6 @@ class DeleteDomainTest extends UnitTestCase
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
                 'tokenInfo'  => 'token$failure',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -48,7 +46,6 @@ class DeleteDomainTest extends UnitTestCase
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
                 'tokenInfo'  => 'token$thrown',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -65,7 +62,6 @@ class DeleteDomainTest extends UnitTestCase
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
                 'tokenInfo'  => 'token$success',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -81,7 +77,6 @@ class DeleteDomainTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$failure',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -97,7 +92,6 @@ class DeleteDomainTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$thrown',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -113,10 +107,77 @@ class DeleteDomainTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
         self::assertTrue($wefact->deleteDomain('test.nl', 'fastest'));
+    }
+
+    public function testDError()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'           => 'public$success',
+                'api_secret'        => 'secret$success',
+                'token'             => 'token$success',
+                'tokenDeleteDomain' => 'token$failure',
+            )
+        );
+
+        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+    }
+
+    public function testDException()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'           => 'public$success',
+                'api_secret'        => 'secret$success',
+                'token'             => 'token$success',
+                'tokenDeleteDomain' => 'token$thrown',
+            )
+        );
+
+        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+    }
+
+    public function testDInternal()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'           => 'public$success',
+                'api_secret'        => 'secret$success',
+                'token'             => 'token$success',
+                'tokenDeleteDomain' => 'token$successinternal',
+            )
+        );
+
+        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+
+        self::assertEquals(array('ODR: Testing'), $wefact->Error);
+    }
+
+    public function testDInternalNoMessage()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'           => 'public$success',
+                'api_secret'        => 'secret$success',
+                'token'             => 'token$success',
+                'tokenDeleteDomain' => 'token$successnomessage',
+            )
+        );
+
+        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+
+        self::assertEquals(array('ODR: Incorrect response'), $wefact->Error);
     }
 }

@@ -14,7 +14,6 @@ class GetContactListTest extends UnitTestCase
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -30,7 +29,6 @@ class GetContactListTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$failure',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -46,7 +44,6 @@ class GetContactListTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$thrown',
-                'url'        => $wefact::URL_TEST,
             )
         );
 

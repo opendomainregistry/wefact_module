@@ -14,7 +14,6 @@ class UpdateNameServersTest extends UnitTestCase
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -31,7 +30,6 @@ class UpdateNameServersTest extends UnitTestCase
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
                 'tokenInfo'  => 'token$failure',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -48,7 +46,6 @@ class UpdateNameServersTest extends UnitTestCase
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
                 'tokenInfo'  => 'token$thrown',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -64,7 +61,6 @@ class UpdateNameServersTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$failure',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -81,7 +77,6 @@ class UpdateNameServersTest extends UnitTestCase
                 'api_secret'  => 'secret$success',
                 'token'       => 'token$success',
                 'tokenUpdate' => 'token$thrown',
-                'url'         => $wefact::URL_TEST,
             )
         );
 
@@ -97,7 +92,6 @@ class UpdateNameServersTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
-                'url'        => $wefact::URL_TEST,
             )
         );
 

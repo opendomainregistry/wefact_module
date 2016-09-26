@@ -24,7 +24,6 @@ class CheckLoginTest extends UnitTestCase
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$secret',
-                'url'        => $wefact::URL_TEST,
             )
         );
 

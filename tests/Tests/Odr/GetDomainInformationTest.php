@@ -14,7 +14,6 @@ class GetDomainInformationTest extends UnitTestCase
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
                 'token'      => 'public$success',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -30,7 +29,6 @@ class GetDomainInformationTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$failure',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -46,7 +44,6 @@ class GetDomainInformationTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$thrown',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -78,5 +75,109 @@ class GetDomainInformationTest extends UnitTestCase
         );
 
         self::assertEquals($expected, $wefact->getDomainInformation('test.nl'));
+    }
+
+    public function testSuccessNoNs()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'         => 'public$success',
+                'api_secret'      => 'secret$success',
+                'token'           => 'token$success',
+                'tokenDomainInfo' => 'token$successmissingns',
+            )
+        );
+
+        $whois = $wefact->getContact(24);
+
+        $whois->adminHandle = 32;
+        $whois->techHandle  = null;
+
+        $expected = array(
+            'Domain'      => 'test.nl',
+            'Information' => array(
+                'nameservers'       => array(
+                    'ns1.test.ru',
+                    'ns2.test.ru',
+                ),
+                'whois'             => $whois,
+                'expiration_date'   => date('Y') + 1 . '-01-01',
+                'registration_date' => '',
+                'authkey'           => 'TEST1221TSET',
+                'auto_renew'        => 'on',
+            ),
+        );
+
+        self::assertEquals($expected, $wefact->getDomainInformation('test.nl'));
+    }
+
+    public function testDError()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'         => 'public$success',
+                'api_secret'      => 'secret$success',
+                'token'           => 'token$success',
+                'tokenDomainInfo' => 'token$failure',
+            )
+        );
+
+        self::assertFalse($wefact->getDomainInformation('test.nl'));
+    }
+
+    public function testDException()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'         => 'public$success',
+                'api_secret'      => 'secret$success',
+                'token'           => 'token$success',
+                'tokenDomainInfo' => 'token$thrown',
+            )
+        );
+
+        self::assertFalse($wefact->getDomainInformation('test.nl'));
+    }
+
+    public function testDInternal()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'         => 'public$success',
+                'api_secret'      => 'secret$success',
+                'token'           => 'token$success',
+                'tokenDomainInfo' => 'token$successinternal',
+            )
+        );
+
+        self::assertFalse($wefact->getDomainInformation('test.nl'));
+
+        self::assertEquals(array('ODR: Testing'), $wefact->Error);
+    }
+
+    public function testDInternalNoMessage()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'         => 'public$success',
+                'api_secret'      => 'secret$success',
+                'token'           => 'token$success',
+                'tokenDomainInfo' => 'token$successnomessage',
+            )
+        );
+
+        self::assertFalse($wefact->getDomainInformation('test.nl'));
+
+        self::assertEquals(array('ODR: Incorrect response'), $wefact->Error);
     }
 }

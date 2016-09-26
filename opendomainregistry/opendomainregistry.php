@@ -130,7 +130,7 @@ class opendomainregistry implements IRegistrar
         }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError($result['response']['data']['message']);
+            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
         }
 
         return (bool)$result['response']['is_available'];
@@ -204,7 +204,7 @@ class opendomainregistry implements IRegistrar
         }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError($result['response']['data']['message']);
+            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
         }
 
         return $this->_checkResult(true);
@@ -274,7 +274,7 @@ class opendomainregistry implements IRegistrar
         }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError($result['response']['data']['message']);
+            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
         }
 
         return $this->_checkResult(true);
@@ -298,14 +298,12 @@ class opendomainregistry implements IRegistrar
 
         if ($delType === 'end') {
             try {
-                $this->odr->getDomainInfo($domain);
+                $result = $this->odr->getDomainInfo($domain)->getResult();
             } catch (Api_Odr_Exception $e) {
                 $this->Error[] = $e->getMessage();
 
                 return false;
             }
-
-            $result = $this->odr->getResult();
 
             if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
                 return $this->parseError($result['response']);
@@ -331,7 +329,7 @@ class opendomainregistry implements IRegistrar
         }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError($result['response']['data']['message']);
+            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
         }
 
         return $this->_checkResult(true);
@@ -351,21 +349,19 @@ class opendomainregistry implements IRegistrar
         }
 
         try {
-            $this->odr->getDomainInfo($domain);
+            $result = $this->odr->getDomainInfo($domain)->getResult();
         } catch (Api_Odr_Exception $e) {
             $this->Error[] = $e->getMessage();
 
             return false;
         }
 
-        $result = $this->odr->getResult();
-
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
         }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError($result['response']['data']['message']);
+            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
         }
 
         $response = $result['response'];
@@ -430,16 +426,18 @@ class opendomainregistry implements IRegistrar
             $filter['tlds'] = implode(',', $tlds);
         }
 
-        $this->odr->getDomains($filter);
-
-        $result = $this->odr->getResult();
+        try {
+            $result = $this->odr->getDomains($filter)->getResult();
+        } catch (\Exception $e) {
+            return $this->parseError($e);
+        }
 
         if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
             return $this->parseError($result['response']);
         }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError($result['response']['data']['message']);
+            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
         }
 
         $domains = array();
@@ -940,30 +938,13 @@ class opendomainregistry implements IRegistrar
 
         $info = $info['response'];
 
-        $parameters = array(
-            'domain_name' => $info['domain_name'],
-            'auth_code'   => $info['auth_code'],
-        );
+        $parameters = $this->convertNameservers($domain, $nameservers);
+
+        $parameters['domain_name'] = $info['domain_name'];
+        $parameters['auth_code']   = $info['auth_code'];
 
         foreach ($info['contacts_map'] as $contactType => $contactId) {
             $parameters['contact_' . strtolower($contactType)] = $contactId;
-        }
-
-        foreach (range(1, 8) as $r) {
-            if (empty($nameservers["ns{$r}"])) {
-                continue;
-            }
-
-            $ns = array(
-                'host' => $nameservers["ns{$r}"],
-                'ip'   => null,
-            );
-
-            if (!empty($nameservers["ns{$r}ip"]) && strpos($ns['host'], $domain)) {
-                $ns['ip'] = $nameservers["ns{$r}ip"];
-            }
-
-            $parameters["ns{$r}"] = $ns;
         }
 
         try {
@@ -1005,6 +986,7 @@ class opendomainregistry implements IRegistrar
             return $this->parseError('Vul de API key als gebruikersnaam in en de API secret als wachtwoord.');
         }
 
+        // @codeCoverageIgnoreStart
         if (!$this->odr) {
             $config = array(
                 'api_key'    => $this->User,
@@ -1014,12 +996,23 @@ class opendomainregistry implements IRegistrar
 
             $this->odr = new Api_Odr($config);
         }
+        // @codeCoverageIgnoreEnd
 
         if ($this->AccessToken && is_string($this->AccessToken)) {
             try {
                 $this->odr->setHeader('X-Access-Token', $this->AccessToken);
 
-                $this->odr->getMe();
+                $meResult = $this->odr->getMe()->getResult();
+
+                if ($meResult['status'] === Api_Odr::STATUS_ERROR) {
+                    if (!empty($_SESSION[self::ODR_TOKEN_SESSION])) {
+                        unset($_SESSION[self::ODR_TOKEN_SESSION]);
+                    }
+
+                    $this->AccessToken = false;
+
+                    $this->odr->setHeader('X-Access-Token', null);
+                }
             } catch (Api_Odr_Exception $e) {
                 if (!empty($_SESSION[self::ODR_TOKEN_SESSION])) {
                     unset($_SESSION[self::ODR_TOKEN_SESSION]);
@@ -1036,9 +1029,7 @@ class opendomainregistry implements IRegistrar
         }
 
         try {
-            $this->odr->login();
-
-            $loginResult = $this->odr->getResult();
+            $loginResult = $this->odr->login()->getResult();
 
             if ($loginResult['status'] === Api_Odr::STATUS_ERROR) {
                 return $this->parseError($loginResult['response'], $loginResult['code']);
@@ -1077,7 +1068,7 @@ class opendomainregistry implements IRegistrar
     public function parseError($message, $code = '')
     {
         if (is_array($message)) {
-            $message = $message['message'];
+            $message = empty($message['message']) ? null : $message['message'];
         }
 
         if ($message instanceof Exception) {

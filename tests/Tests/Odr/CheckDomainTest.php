@@ -14,7 +14,6 @@ class CheckDomainTest extends UnitTestCase
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
                 'token'      => 'public$success',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -30,7 +29,6 @@ class CheckDomainTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$failure',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -46,7 +44,6 @@ class CheckDomainTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'public$success',
                 'token'      => 'token$thrown',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -65,5 +62,41 @@ class CheckDomainTest extends UnitTestCase
         $wefact = $this->getModule();
 
         self::assertFalse($wefact->checkDomain('test.eu'));
+    }
+
+    public function testErrorDomainListNoMessage()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'          => 'public$success',
+                'api_secret'       => 'secret$success',
+                'token'            => 'token$success',
+                'tokenCheckDomain' => 'token$successnomessage',
+            )
+        );
+
+        self::assertFalse($wefact->checkDomain('test.nl'));
+
+        self::assertEquals(array('ODR: Incorrect response'), $wefact->Error);
+    }
+
+    public function testErrorDomainListInternal()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'          => 'public$success',
+                'api_secret'       => 'secret$success',
+                'token'            => 'token$success',
+                'tokenCheckDomain' => 'token$successinternal',
+            )
+        );
+
+        self::assertFalse($wefact->checkDomain('test.nl'));
+
+        self::assertEquals(array('ODR: Someone wanted it!'), $wefact->Error);
     }
 }

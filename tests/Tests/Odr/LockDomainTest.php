@@ -28,7 +28,6 @@ class LockDomainTest extends UnitTestCase
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$success',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -44,7 +43,6 @@ class LockDomainTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$failure',
-                'url'        => $wefact::URL_TEST,
             )
         );
 

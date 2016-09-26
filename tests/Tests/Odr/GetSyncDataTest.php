@@ -14,7 +14,6 @@ class GetSyncDataTest extends UnitTestCase
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
                 'token'      => 'public$success',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -37,7 +36,6 @@ class GetSyncDataTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$failure',
-                'url'        => $wefact::URL_TEST,
             )
         );
 
@@ -60,7 +58,6 @@ class GetSyncDataTest extends UnitTestCase
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
                 'token'      => 'token$thrown',
-                'url'        => $wefact::URL_TEST,
             )
         );
 

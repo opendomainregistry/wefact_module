@@ -4,12 +4,6 @@ Open Domain Registry module for WeFact
 Adds support for Open Domain Registry at WeFact.
 Maintained by Open Domain Registry team.
 
-> **Warning!**
-
-> This is a preview version, it's not supposed to be used in live environment yet. There still can be some bugs.
-
-----------
-
 Installation
 ------------
 
@@ -27,8 +21,8 @@ Installation
 Support
 -------
 
-If you want to get help right away, please use contact data in either WeFact module page or on main [Open Domain Registry](http://www.opendomainregistry.net/) page.
-You can also create issue on Github, we check those too!
+If you want to get help right away, please use contact data in either WeFact module page or on main [Open Domain Registry](https://www.opendomainregistry.net/) page.
+You can also [create issue on Github](https://github.com/opendomainregistry/whmcs_module/issues/new), we check those too!
 
 Important
 ---------
