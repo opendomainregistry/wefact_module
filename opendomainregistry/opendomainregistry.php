@@ -1,7 +1,7 @@
 <?php
-require_once '3rdparty/domain/IRegistrar.php';
-require_once '3rdparty/domain/standardfunctions.php';
-require_once 'helpers.php';
+require_once __DIR__ . '/3rdparty/domain/IRegistrar.php';
+require_once __DIR__ . '/3rdparty/domain/standardfunctions.php';
+require_once __DIR__ . '/helpers.php';
 
 class opendomainregistry implements IRegistrar
 {
@@ -47,6 +47,10 @@ class opendomainregistry implements IRegistrar
 
     private $ClassName;
     private $AccessToken;
+
+    protected $TldPeriod2  = array();
+    protected $TldPeriod3  = array();
+    protected $TldPeriod10 = array();
 
     /** @var null|Api_Odr */
     public $odr;
@@ -228,7 +232,7 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $tld = substr(stristr($domain, '.'), 1);
+        $tld = substr(strstr($domain, '.'), 1);
 
         $ownerHandle = $this->_obtainHandle($domain, $whois, HANDLE_OWNER);
 
@@ -368,6 +372,10 @@ class opendomainregistry implements IRegistrar
 
         $nameservers = array();
 
+        if (empty($response['nameservers'])) {
+            $response['nameservers'] = array();
+        }
+
         foreach ($response['nameservers'] as $ns) {
             if (empty($ns)) {
                 continue;
@@ -376,7 +384,27 @@ class opendomainregistry implements IRegistrar
             $nameservers[] = is_array($ns) ? $ns['host'] : $ns;
         }
 
-        $whois = $this->getContact($response['contacts_map']['REGISTRANT']);
+        if (empty($response['contacts_map'])) {
+            $response['contacts_map'] = array();
+        }
+
+        $whois = null;
+
+        foreach ($response['contacts_map'] as $cnt) {
+            if (!$cnt) {
+                continue;
+            }
+
+            $whois = $this->getContact($cnt);
+
+            break;
+        }
+
+        if ($whois === null) {
+            $this->Error[] = 'Domain do not have any contacts attached. Probably issue with missing details or contacts being corrupted. Please, contact support and visit ODR to fix such domains';
+
+            return false;
+        }
 
         $whois->adminHandle = $response['contacts_map']['ONSITE'];
         $whois->techHandle  = !empty($response['contacts_map']['TECH']) ? $response['contacts_map']['TECH'] : null;
@@ -577,7 +605,7 @@ class opendomainregistry implements IRegistrar
             $value = $data;
 
             $value['Information']['nameservers']     = $data['Information']['nameservers'];
-            $value['Information']['expiration_date'] = (isset($data['Information']['expiration_date'])) ? $data['Information']['expiration_date'] : '';
+            $value['Information']['expiration_date'] = isset($data['Information']['expiration_date']) ? $data['Information']['expiration_date'] : '';
             $value['Information']['auto_renew']      = empty($data['Information']['auto_renew']) ? '' : $data['Information']['auto_renew'];
 
             $value['Status'] = 'success';
@@ -1128,7 +1156,7 @@ class opendomainregistry implements IRegistrar
         }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError($result['response']['data']['message']);
+            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrectly formatted response' : $result['response']['data']['message']);
         }
 
         if ($result['status'] === Api_Odr::STATUS_SUCCESS) {
