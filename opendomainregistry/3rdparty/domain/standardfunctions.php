@@ -11,36 +11,38 @@ if (!defined('HANDLE_TECH')) {
     define('HANDLE_TECH', 'TECH');
 }
 
-class Whois
-{
-    protected $_data = array();
-
-    public function __construct()
+if (!class_exists('Whois')) {
+    class Whois
     {
-    }
+        protected $_data = array();
 
-    /**
-     * @param string $key
-     *
-     * @return mixed
-     */
-    public function __get($key)
-    {
-        return empty($this->_data[$key]) ? null : $this->_data[$key];
-    }
+        public function __construct()
+        {
+        }
 
-    public function __set($key, $value)
-    {
-        $this->_data[$key] = $value;
-    }
+        /**
+         * @param string $key
+         *
+         * @return mixed
+         */
+        public function __get($key)
+        {
+            return empty($this->_data[$key]) ? null : $this->_data[$key];
+        }
 
-    public function __isset($key)
-    {
-        return isset($this->_data[$key]);
-    }
+        public function __set($key, $value)
+        {
+            $this->_data[$key] = $value;
+        }
 
-    public function getParam($prefix, $param)
-    {
-        return empty($this->_data[$prefix . $param]) ? null : $this->_data[$prefix . $param];
+        public function __isset($key)
+        {
+            return isset($this->_data[$key]);
+        }
+
+        public function getParam($prefix, $param)
+        {
+            return empty($this->_data[$prefix . $param]) ? null : $this->_data[$prefix . $param];
+        }
     }
 }

@@ -1,6 +1,8 @@
 <?php
 set_include_path(realpath(__DIR__) .'/../' . PATH_SEPARATOR . get_include_path());
 
+define('TESTING', true);
+
 require_once 'vendor/autoload.php';
 
 require_once 'opendomainregistry/opendomainregistry.php';
