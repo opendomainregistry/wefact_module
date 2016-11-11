@@ -6,6 +6,9 @@ if (!defined('TESTING')) {
 if (TESTING) { // So only IDE will load this
     require_once __DIR__ . '/3rdparty/domain/IRegistrar.php';
     require_once __DIR__ . '/3rdparty/domain/standardfunctions.php';
+} else {
+    require_once '3rdparty/domain/IRegistrar.php';
+    require_once '3rdparty/domain/standardfunctions.php';
 }
 
 require_once __DIR__ . '/helpers.php';
