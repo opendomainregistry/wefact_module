@@ -79,7 +79,7 @@ class CheckDomainTest extends UnitTestCase
 
         self::assertFalse($wefact->checkDomain('test.nl'));
 
-        self::assertEquals(array('ODR: Incorrect response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
     }
 
     public function testErrorDomainListInternal()

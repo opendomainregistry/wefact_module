@@ -54,7 +54,7 @@ class UpdateDomainWhoisTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -84,7 +84,7 @@ class UpdateDomainWhoisTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -113,7 +113,7 @@ class UpdateDomainWhoisTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -134,7 +134,7 @@ class UpdateDomainWhoisTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -160,7 +160,7 @@ class UpdateDomainWhoisTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -189,7 +189,7 @@ class UpdateDomainWhoisTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,

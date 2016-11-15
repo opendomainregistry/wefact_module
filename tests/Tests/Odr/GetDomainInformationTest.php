@@ -266,6 +266,6 @@ class GetDomainInformationTest extends UnitTestCase
 
         self::assertFalse($wefact->getDomainInformation('test.nl'));
 
-        self::assertEquals(array('ODR: Incorrect response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
     }
 }

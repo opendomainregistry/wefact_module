@@ -82,7 +82,7 @@ class GetDomainListTest extends UnitTestCase
 
         self::assertFalse($wefact->getDomainList());
 
-        self::assertEquals(array('ODR: Incorrect response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
     }
 
     public function testErrorDomainListInternal()

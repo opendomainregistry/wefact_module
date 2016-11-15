@@ -49,7 +49,7 @@ class TransferDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -70,7 +70,7 @@ class TransferDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -96,7 +96,7 @@ class TransferDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -125,7 +125,7 @@ class TransferDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -154,7 +154,7 @@ class TransferDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -184,7 +184,7 @@ class TransferDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -214,7 +214,7 @@ class TransferDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -244,7 +244,7 @@ class TransferDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -276,7 +276,7 @@ class TransferDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -292,6 +292,6 @@ class TransferDomainTest extends UnitTestCase
 
         self::assertFalse($wefact->transferDomain('test.nl', array(), $whois));
 
-        self::assertEquals(array('ODR: Incorrect response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
     }
 }

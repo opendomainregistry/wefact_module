@@ -178,6 +178,6 @@ class DeleteDomainTest extends UnitTestCase
 
         self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
 
-        self::assertEquals(array('ODR: Incorrect response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
     }
 }

@@ -49,13 +49,13 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->registerDomain('test.nl', array(), $whois));
+        self::assertFalse($wefact->registerDomain('test.nl', array(), $whois, true));
     }
 
     public function testErrorTech()
@@ -70,7 +70,7 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -96,7 +96,7 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -125,7 +125,7 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -154,7 +154,7 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -184,7 +184,7 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -197,7 +197,6 @@ class RegisterDomainTest extends UnitTestCase
         $whois->techRegistrarHandles = array(
             'opendomainregistry' => 1,
         );
-
         self::assertFalse($wefact->registerDomain('test.nl', array(), $whois));
     }
 
@@ -214,7 +213,7 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -244,7 +243,7 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -276,7 +275,7 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array(
             'opendomainregistry' => 1,
@@ -292,6 +291,6 @@ class RegisterDomainTest extends UnitTestCase
 
         self::assertFalse($wefact->registerDomain('test.nl', array(), $whois));
 
-        self::assertEquals(array('ODR: Incorrect response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
     }
 }

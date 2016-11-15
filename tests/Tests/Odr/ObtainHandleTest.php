@@ -17,20 +17,36 @@ class ObtainHandleTest extends UnitTestCase
         self::assertFalse($method->invoke($wefact, 'test.nl', null, 'owner', HANDLE_OWNER));
     }
 
-    public function testHandlesExists()
+    public function testHandlesExistsButString()
     {
         $wefact = new Module;
         $method = $this->getSecureMethod($wefact, '_obtainHandle');
 
-        $whois = new Whois;
+        $whois = $this->getDefaultWhois();
 
         $whois->ownerRegistrarHandles = array('opendomainregistry' => 'AAA');
         $whois->adminRegistrarHandles = array('opendomainregistry' => 'BBB');
         $whois->techRegistrarHandles  = array('opendomainregistry' => 'CCC');
 
-        self::assertEquals('AAA', $method->invoke($wefact, 'test.nl', $whois, HANDLE_OWNER));
-        self::assertEquals('BBB', $method->invoke($wefact, 'test.nl', $whois, HANDLE_ADMIN));
-        self::assertEquals('CCC', $method->invoke($wefact, 'test.nl', $whois, HANDLE_TECH));
+        self::assertFalse($method->invoke($wefact, 'test.nl', $whois, HANDLE_OWNER));
+        self::assertFalse($method->invoke($wefact, 'test.nl', $whois, HANDLE_ADMIN));
+        self::assertFalse($method->invoke($wefact, 'test.nl', $whois, HANDLE_TECH));
+    }
+
+    public function testHandlesExists()
+    {
+        $wefact = new Module;
+        $method = $this->getSecureMethod($wefact, '_obtainHandle');
+
+        $whois = $this->getDefaultWhois();
+
+        $whois->ownerRegistrarHandles = array('opendomainregistry' => '500');
+        $whois->adminRegistrarHandles = array('opendomainregistry' => '600');
+        $whois->techRegistrarHandles  = array('opendomainregistry' => '700');
+
+        self::assertEquals('500', $method->invoke($wefact, 'test.nl', $whois, HANDLE_OWNER));
+        self::assertEquals('600', $method->invoke($wefact, 'test.nl', $whois, HANDLE_ADMIN));
+        self::assertEquals('700', $method->invoke($wefact, 'test.nl', $whois, HANDLE_TECH));
     }
 
     public function testSurNameError()

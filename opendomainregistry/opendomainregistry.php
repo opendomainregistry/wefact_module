@@ -144,7 +144,7 @@ class opendomainregistry implements IRegistrar
         }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
+            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrectly formatted response' : $result['response']['data']['message']);
         }
 
         return (bool)$result['response']['is_available'];
@@ -161,7 +161,7 @@ class opendomainregistry implements IRegistrar
      *
      * @throws Api_Odr_Exception
      */
-    public function registerDomain($domain, $nameservers = array(), $whois = null)
+    public function registerDomain($domain, $nameservers = array(), $whois = null, $isTest = false)
     {
         if (!$this->_checkLogin()) {
             return false;
@@ -171,7 +171,7 @@ class opendomainregistry implements IRegistrar
 
         $tld = $exploded[1];
 
-        $ownerHandle = $this->_obtainHandle($domain, $whois, HANDLE_OWNER);
+        $ownerHandle = $this->_obtainHandle($domain, $whois, HANDLE_OWNER, $isTest);
 
         if (!$ownerHandle) {
             return $ownerHandle;
@@ -209,16 +209,6 @@ class opendomainregistry implements IRegistrar
             $this->Error[] = $e->getMessage();
 
             return false;
-        }
-
-        $result = $this->odr->getResult();
-
-        if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
-            return $this->parseError($result['response']);
-        }
-
-        if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
         }
 
         return $this->_checkResult(true);
@@ -281,16 +271,6 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $result = $this->odr->getResult();
-
-        if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
-            return $this->parseError($result['response']);
-        }
-
-        if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
-        }
-
         return $this->_checkResult(true);
     }
 
@@ -336,16 +316,6 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        $result = $this->odr->getResult();
-
-        if ($result['status'] !== Api_Odr::STATUS_SUCCESS) {
-            return $this->parseError($result['response']);
-        }
-
-        if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
-        }
-
         return $this->_checkResult(true);
     }
 
@@ -375,7 +345,7 @@ class opendomainregistry implements IRegistrar
         }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
+            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrectly formatted response' : $result['response']['data']['message']);
         }
 
         $response = $result['response'];
@@ -475,7 +445,7 @@ class opendomainregistry implements IRegistrar
         }
 
         if (!empty($result['response']['status']) && $result['response']['status'] === 'FAILED') {
-            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrect response' : $result['response']['data']['message']);
+            return $this->parseError(empty($result['response']['data']['message']) ? 'Incorrectly formatted response' : $result['response']['data']['message']);
         }
 
         $domains = array();
@@ -1269,12 +1239,25 @@ class opendomainregistry implements IRegistrar
      *
      * @protected
      */
-    protected function _obtainHandle($domain, $whois, $key)
+    protected function _obtainHandle($domain, $whois, $key, $isTest = false)
     {
         $prefix = $this->_getContactPrefix($key);
 
+        foreach (self::getRequiredContactFields() as $field => $translation) {
+            if (empty($whois->{$prefix . $field})) {
+                $this->Error[] = 'Please fill contact\'s ' . $translation . ' (' . $field . ')';
+            }
+        }
+
+        if (!empty($this->Error)) {
+            return false;
+        }
+
+        if ($isTest) {
+
+        }
         // Check if a registrar-specific handle for this domain already exists
-        if ($whois !== null && (isset($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName]) || !empty($this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}]))) {
+        if ($whois !== null && ((isset($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName]) && is_numeric($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName])) || (!empty($this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}]) && is_numeric($this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}])))) {
             $handle = empty($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName]) ? $this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}] : $whois->{$prefix . 'RegistrarHandles'}[$this->ClassName];
 
             if (empty($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName])) {
@@ -1290,6 +1273,8 @@ class opendomainregistry implements IRegistrar
             if (!$handle && !$handle = $this->createContact($whois, $key)) {
                 return false;
             }
+
+            $whois->{$prefix . 'RegistrarHandles'}[$this->ClassName] = $handle;
 
             // If a new handle is created or found, store in array. WeFact will store this data, which will result in faster registration next time
             $this->registrarHandles[$prefix]                                  = $handle;
@@ -1450,5 +1435,27 @@ class opendomainregistry implements IRegistrar
                     return strtoupper($prefix);
                 break;
         }
+    }
+
+    /**
+     * List of required contact fields
+     * Format is - key = name in WeFact, value - translation name
+     * Warning! Names must be without prefixes
+     *
+     * @return array
+     */
+    static public function getRequiredContactFields()
+    {
+        return array(
+            'PhoneNumber'  => 'Phone number',
+            'EmailAddress' => 'Email address',
+            'ZipCode'      => 'Postal code',
+            'Country'      => 'Country',
+            'City'         => 'City',
+            'StreetName'   => 'Street',
+            'StreetNumber' => 'House number',
+            'Initials'     => 'First name/initials',
+            //'SurName'      => 'Surname',
+        );
     }
 }

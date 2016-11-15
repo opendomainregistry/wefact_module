@@ -4,6 +4,7 @@ namespace Tests;
 use \opendomainregistry as Module;
 
 use Mocks;
+use Whois;
 
 abstract class UnitTestCase extends \PHPUnit_Framework_TestCase
 {
@@ -144,5 +145,18 @@ abstract class UnitTestCase extends \PHPUnit_Framework_TestCase
         );
 
         return $module;
+    }
+
+    public function getDefaultWhois()
+    {
+        $whois = new Whois;
+
+        foreach (\opendomainregistry::getRequiredContactFields() as $field => $translation) {
+            $whois->{'owner' . $field} = $translation;
+            $whois->{'admin' . $field} = $translation;
+            $whois->{'tech' . $field}  = $translation;
+        }
+
+        return $whois;
     }
 }
