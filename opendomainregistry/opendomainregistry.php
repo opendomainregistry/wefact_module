@@ -1452,8 +1452,6 @@ class opendomainregistry implements IRegistrar
             'ZipCode'      => 'Postal code',
             'Country'      => 'Country',
             'City'         => 'City',
-            'StreetName'   => 'Street',
-            'StreetNumber' => 'House number',
             'Initials'     => 'First name/initials',
             //'SurName'      => 'Surname',
         );
