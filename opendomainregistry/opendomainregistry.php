@@ -389,8 +389,18 @@ class opendomainregistry implements IRegistrar
         $whois->adminHandle = $response['contacts_map']['ONSITE'];
         $whois->techHandle  = !empty($response['contacts_map']['TECH']) ? $response['contacts_map']['TECH'] : null;
 
-        $authkey        = empty($response['auth_code']) ? null : $response['auth_code'];
-        $expirationDate = date('Y-m-d', strtotime((empty($response['expiration_date']) ? $response['expiration_at'] : $response['expiration_date'])));
+        $expirationAt = null;
+
+        if (!empty($response['expiration_date'])) {
+            $expirationAt = $response['expiration_date'];
+        }
+
+        if (!empty($response['expiration_at'])) {
+            $expirationAt = $response['expiration_at'];
+        }
+
+        $authkey        = empty($response['auth_code']) ? '' : $response['auth_code'];
+        $expirationDate = $expirationAt ? date('Y-m-d', strtotime($expirationAt)) : $expirationAt;
 
         return array(
             'Domain'      => $domain,

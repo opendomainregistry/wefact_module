@@ -251,6 +251,42 @@ class GetDomainInformationTest extends UnitTestCase
         self::assertEquals(array('ODR: Testing'), $wefact->Error);
     }
 
+    public function testSuccessButNoExpiration()
+    {
+        $wefact = $this->getModule();
+
+        $wefact->odr->setConfig(
+            array(
+                'api_key'         => 'public$success',
+                'api_secret'      => 'secret$success',
+                'token'           => 'token$success',
+                'tokenDomainInfo' => 'token$successnoexpiration',
+            )
+        );
+
+        $whois = $wefact->getContact(24);
+
+        $whois->adminHandle = 32;
+        $whois->techHandle  = null;
+
+        $expected = array(
+            'Domain'      => 'testxxx23.nl',
+            'Information' => array(
+                'nameservers'       => array(
+                    'ns1.test.ru',
+                    'ns2.test.ru',
+                ),
+                'whois'             => $whois,
+                'expiration_date'   => '',
+                'registration_date' => '',
+                'authkey'           => 'TEST1221TSET',
+                'auto_renew'        => 'on',
+            ),
+        );
+
+        self::assertEquals($expected, $wefact->getDomainInformation('testxxx23.nl'));
+    }
+
     public function testDInternalNoMessage()
     {
         $wefact = $this->getModule();

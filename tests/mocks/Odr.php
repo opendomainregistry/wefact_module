@@ -523,6 +523,40 @@ class Odr extends \Api_Odr
                 );
             }
 
+            if (strpos($this->_config['tokenDomainInfo'], 'token$successnoexpiration') === 0) {
+                list($name, $tld) = explode('.', $domain, 2);
+
+                return $this->setResult(
+                    array(
+                        'status'   => self::STATUS_SUCCESS,
+                        'code'     => 200,
+                        'response' => array(
+                            'id'              => 3,
+                            'domain_id'       => 3,
+                            'status'          => 'REGISTERED',
+                            'name'            => $name,
+                            'domain_name'     => $name,
+                            'autorenew'       => 'ON',
+                            'tld'             => $tld,
+                            'expiration_date' => null,
+                            'auth_code'       => $tld === 'be' ? null : 'TEST1221TSET',
+                            'contacts'        => array(
+                                'REGISTRANT' => 'XXX001',
+                                'ONSITE'     => 'XXX001'
+                            ),
+                            'contacts_map'    => array(
+                                'REGISTRANT' => 24,
+                                'ONSITE'     => 32
+                            ),
+                            'nameservers'     => array(
+                                'ns1.test.ru',
+                                'ns2.test.ru',
+                            ),
+                        ),
+                    )
+                );
+            }
+
             if (strpos($this->_config['tokenDomainInfo'], 'token$successnocontactmap') === 0) {
                 list($name, $tld) = explode('.', $domain, 2);
 
