@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="wefact-odr" default="full-build">
+<project name="hostfact-odr" default="full-build">
     <condition property="isWindows">
         <os family="windows" />
     </condition>

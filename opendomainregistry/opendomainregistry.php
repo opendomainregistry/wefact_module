@@ -78,14 +78,26 @@ class opendomainregistry implements IRegistrar
         $this->TldPeriod3  = array('vc','vg');
         $this->TldPeriod10 = array('tm');
 
-        $pdoStatement = Database_Model::getInstance()->prepare('SELECT * FROM `WeFact_Registrar` WHERE `Class` = :classname');
-
         $dir = basename(__DIR__);
 
-        $pdoStatement->bindValue(':classname', $dir);
-        $pdoStatement->execute();
+        try {
+            $pdoStatement = Database_Model::getInstance()->prepare('SELECT * FROM `WeFact_Registrar` WHERE `Class` = :classname');
 
-        $this->_registrarId = $pdoStatement->fetch()->id;
+            $pdoStatement->bindValue(':classname', $dir);
+            $pdoStatement->execute();
+
+            $this->_registrarId = $pdoStatement->fetch()->id;
+        } catch (\PDOException $e) {
+            try {
+                $pdoStatement = Database_Model::getInstance()->prepare('SELECT * FROM `HostFact_Registrar` WHERE `Class` = :classname');
+
+                $pdoStatement->bindValue(':classname', $dir);
+                $pdoStatement->execute();
+
+                $this->_registrarId = $pdoStatement->fetch()->id;
+            } catch (\PDOException $e) {
+            }
+        }
     }
 
     /**
@@ -106,12 +118,24 @@ class opendomainregistry implements IRegistrar
 
         $this->_availableTlds = array();
 
-        $pdoStatement = Database_Model::getInstance()->prepare('SELECT `Tld` FROM `WeFact_TopLevelDomain` WHERE `Registrar` = :registrar');
+        try {
+            $pdoStatement = Database_Model::getInstance()->prepare('SELECT `Tld` FROM `WeFact_TopLevelDomain` WHERE `Registrar` = :registrar');
 
-        $pdoStatement->bindValue(':registrar', $this->_registrarId);
-        $pdoStatement->execute();
+            $pdoStatement->bindValue(':registrar', $this->_registrarId);
+            $pdoStatement->execute();
 
-        $this->_availableTlds = (array)$pdoStatement->fetchAll(PDO::FETCH_COLUMN);
+            $this->_availableTlds = (array)$pdoStatement->fetchAll(PDO::FETCH_COLUMN);
+        } catch (\PDOException $e) {
+            try {
+                $pdoStatement = Database_Model::getInstance()->prepare('SELECT `Tld` FROM `HostFact_TopLevelDomain` WHERE `Registrar` = :registrar');
+
+                $pdoStatement->bindValue(':registrar', $this->_registrarId);
+                $pdoStatement->execute();
+
+                $this->_availableTlds = (array)$pdoStatement->fetchAll(PDO::FETCH_COLUMN);
+            } catch (\PDOException $e) {
+            }
+        }
 
         return empty($this->_availableTlds) ? array() : $this->_availableTlds;
     }
@@ -1190,7 +1214,7 @@ class opendomainregistry implements IRegistrar
     }
 
     /**
-     * Maps WeFact contact types to ODR contact types
+     * Maps WeFact/HostFact contact types to ODR contact types
      *
      * @param string $type Contact type
      *
@@ -1263,9 +1287,6 @@ class opendomainregistry implements IRegistrar
             return false;
         }
 
-        if ($isTest) {
-
-        }
         // Check if a registrar-specific handle for this domain already exists
         if ($whois !== null && ((isset($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName]) && is_numeric($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName])) || (!empty($this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}]) && is_numeric($this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}])))) {
             $handle = empty($whois->{$prefix . 'RegistrarHandles'}[$this->ClassName]) ? $this->registrarHandlesMapped[$whois->{$prefix . 'WeFactHandle'}] : $whois->{$prefix . 'RegistrarHandles'}[$this->ClassName];
@@ -1317,7 +1338,7 @@ class opendomainregistry implements IRegistrar
     }
 
     /**
-     * Maps WeFact Whois object to ODR contact format
+     * Maps WeFact/HostFact Whois object to ODR contact format
      *
      * @param Whois $whois Whois object
      * @param mixed $type  Contact Type
@@ -1388,7 +1409,7 @@ class opendomainregistry implements IRegistrar
     }
 
     /**
-     * Converts nameservers from WeFact format ("ns1" for host, "ns1ip" for IP) to array format (array("host" for host, "ip" for IP))
+     * Converts nameservers from WeFact/HostFact format ("ns1" for host, "ns1ip" for IP) to array format (array("host" for host, "ip" for IP))
      *
      * @param string $domain
      * @param array  $nameservers
@@ -1449,7 +1470,7 @@ class opendomainregistry implements IRegistrar
 
     /**
      * List of required contact fields
-     * Format is - key = name in WeFact, value - translation name
+     * Format is - key = name in WeFact/HostFact, value - translation name
      * Warning! Names must be without prefixes
      *
      * @return array

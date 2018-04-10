@@ -1,5 +1,5 @@
 <phpdox xmlns="http://xml.phpdox.net/config">
-    <project name="ODR module for WeFact" source="build" workdir="${basedir}/build/phpdox/xml">
+    <project name="ODR module for HostFact" source="build" workdir="${basedir}/build/phpdox/xml">
         <collector publiconly="false">
             <include mask="*.php" />
         </collector>
