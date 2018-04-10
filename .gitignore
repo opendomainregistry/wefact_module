@@ -4,6 +4,7 @@ composer.phar
 cache.properties
 temporary/build/
 build/
+tests/phpunit.xml
 
 # Source control
 /CVS/*

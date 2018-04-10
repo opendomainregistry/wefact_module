@@ -42,7 +42,7 @@
         </blacklist>
     </filter>
 
-    <testsuite name="tmv-wefact-odr">
+    <testsuite name="tmv-hostfact-odr">
         <directory>./Tests/*</directory>
     </testsuite>
 </phpunit>
