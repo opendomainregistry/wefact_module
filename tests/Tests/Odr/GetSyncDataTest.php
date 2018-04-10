@@ -7,9 +7,9 @@ class GetSyncDataTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -24,14 +24,14 @@ class GetSyncDataTest extends UnitTestCase
             ),
         );
 
-        self::assertEquals($expected, $wefact->getSyncData(array('test.nl' => array())));
+        self::assertEquals($expected, $hostfact->getSyncData(array('test.nl' => array())));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -46,14 +46,14 @@ class GetSyncDataTest extends UnitTestCase
             ),
         );
 
-        self::assertEquals($expected, $wefact->getSyncData(array('test.nl' => array())));
+        self::assertEquals($expected, $hostfact->getSyncData(array('test.nl' => array())));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -68,12 +68,12 @@ class GetSyncDataTest extends UnitTestCase
             ),
         );
 
-        self::assertEquals($expected, $wefact->getSyncData(array('test.nl' => array())));
+        self::assertEquals($expected, $hostfact->getSyncData(array('test.nl' => array())));
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
         $expected = array();
 
@@ -105,13 +105,13 @@ class GetSyncDataTest extends UnitTestCase
             }
 
             /** @var array $info */
-            $info = $wefact->getDomainInformation($domain);
+            $info = $hostfact->getDomainInformation($domain);
 
             $info['Status'] = 'success';
 
             $expected[$domain] = $info;
         }
 
-        self::assertEquals($expected, $wefact->getSyncData($domains));
+        self::assertEquals($expected, $hostfact->getSyncData($domains));
     }
 }

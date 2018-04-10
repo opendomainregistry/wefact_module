@@ -9,10 +9,10 @@ class GetContactHandleTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
         $whois  = new Whois;
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -20,17 +20,17 @@ class GetContactHandleTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getContactHandle($whois, HANDLE_OWNER));
-        self::assertFalse($wefact->getContactHandle($whois, HANDLE_ADMIN));
-        self::assertFalse($wefact->getContactHandle($whois, HANDLE_TECH));
+        self::assertFalse($hostfact->getContactHandle($whois, HANDLE_OWNER));
+        self::assertFalse($hostfact->getContactHandle($whois, HANDLE_ADMIN));
+        self::assertFalse($hostfact->getContactHandle($whois, HANDLE_TECH));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
         $whois  = new Whois;
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -38,17 +38,17 @@ class GetContactHandleTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getContactHandle($whois, HANDLE_OWNER));
-        self::assertFalse($wefact->getContactHandle($whois, HANDLE_ADMIN));
-        self::assertFalse($wefact->getContactHandle($whois, HANDLE_TECH));
+        self::assertFalse($hostfact->getContactHandle($whois, HANDLE_OWNER));
+        self::assertFalse($hostfact->getContactHandle($whois, HANDLE_ADMIN));
+        self::assertFalse($hostfact->getContactHandle($whois, HANDLE_TECH));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
         $whois  = new Whois;
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -56,14 +56,14 @@ class GetContactHandleTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getContactHandle($whois, HANDLE_OWNER));
-        self::assertFalse($wefact->getContactHandle($whois, HANDLE_ADMIN));
-        self::assertFalse($wefact->getContactHandle($whois, HANDLE_TECH));
+        self::assertFalse($hostfact->getContactHandle($whois, HANDLE_OWNER));
+        self::assertFalse($hostfact->getContactHandle($whois, HANDLE_ADMIN));
+        self::assertFalse($hostfact->getContactHandle($whois, HANDLE_TECH));
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
         $whois  = new Whois;
 
         $whois->ownerSurName      = 'Testov';
@@ -71,13 +71,13 @@ class GetContactHandleTest extends UnitTestCase
         $whois->ownerInitials     = 'T';
         $whois->ownerEmailAddress = 'test@gooblesupermegacomp.com';
 
-        self::assertEquals(8, $wefact->getContactHandle($whois, HANDLE_OWNER));
+        self::assertEquals(8, $hostfact->getContactHandle($whois, HANDLE_OWNER));
 
         $whois->ownerSurName      = 'Testov';
         $whois->ownerCompanyName  = 'Test Testov';
         $whois->ownerInitials     = 'Test';
         $whois->ownerEmailAddress = 'test@gooblesupermegacomp.com';
 
-        self::assertFalse($wefact->getContactHandle($whois, HANDLE_OWNER));
+        self::assertFalse($hostfact->getContactHandle($whois, HANDLE_OWNER));
     }
 }

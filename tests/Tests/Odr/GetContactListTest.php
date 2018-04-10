@@ -7,9 +7,9 @@ class GetContactListTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -17,14 +17,14 @@ class GetContactListTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getContactList());
+        self::assertFalse($hostfact->getContactList());
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -32,14 +32,14 @@ class GetContactListTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getContactList());
+        self::assertFalse($hostfact->getContactList());
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -47,12 +47,12 @@ class GetContactListTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getContactList());
+        self::assertFalse($hostfact->getContactList());
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
         $expected = array(
             array(
@@ -65,6 +65,6 @@ class GetContactListTest extends UnitTestCase
             ),
         );
 
-        self::assertEquals($expected, $wefact->getContactList('test'));
+        self::assertEquals($expected, $hostfact->getContactList('test'));
     }
 }

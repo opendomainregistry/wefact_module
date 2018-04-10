@@ -7,9 +7,9 @@ class DeleteDomainTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -17,14 +17,14 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl'));
+        self::assertFalse($hostfact->deleteDomain('test.nl'));
     }
 
     public function testEndInfoError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -33,14 +33,14 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'end'));
+        self::assertFalse($hostfact->deleteDomain('test.nl', 'end'));
     }
 
     public function testEndInfoException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -49,14 +49,14 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'end'));
+        self::assertFalse($hostfact->deleteDomain('test.nl', 'end'));
     }
 
     public function testEndInfoSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -65,14 +65,14 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertTrue($wefact->deleteDomain('test.nl', 'end'));
+        self::assertTrue($hostfact->deleteDomain('test.nl', 'end'));
     }
 
     public function testOtherError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -80,14 +80,14 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+        self::assertFalse($hostfact->deleteDomain('test.nl', 'fastest'));
     }
 
     public function testOtherException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -95,14 +95,14 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+        self::assertFalse($hostfact->deleteDomain('test.nl', 'fastest'));
     }
 
     public function testOtherSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -110,14 +110,14 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertTrue($wefact->deleteDomain('test.nl', 'fastest'));
+        self::assertTrue($hostfact->deleteDomain('test.nl', 'fastest'));
     }
 
     public function testDError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'           => 'public$success',
                 'api_secret'        => 'secret$success',
@@ -126,14 +126,14 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+        self::assertFalse($hostfact->deleteDomain('test.nl', 'fastest'));
     }
 
     public function testDException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'           => 'public$success',
                 'api_secret'        => 'secret$success',
@@ -142,14 +142,14 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+        self::assertFalse($hostfact->deleteDomain('test.nl', 'fastest'));
     }
 
     public function testDInternal()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'           => 'public$success',
                 'api_secret'        => 'secret$success',
@@ -158,16 +158,16 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+        self::assertFalse($hostfact->deleteDomain('test.nl', 'fastest'));
 
-        self::assertEquals(array('ODR: Testing'), $wefact->Error);
+        self::assertEquals(array('ODR: Testing'), $hostfact->Error);
     }
 
     public function testDInternalNoMessage()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'           => 'public$success',
                 'api_secret'        => 'secret$success',
@@ -176,8 +176,8 @@ class DeleteDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->deleteDomain('test.nl', 'fastest'));
+        self::assertFalse($hostfact->deleteDomain('test.nl', 'fastest'));
 
-        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $hostfact->Error);
     }
 }

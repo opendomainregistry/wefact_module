@@ -9,7 +9,7 @@ class ParseErrorTest extends UnitTestCase
 {
     public function testParseData()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
         $data = array(
             array(
@@ -92,11 +92,11 @@ class ParseErrorTest extends UnitTestCase
         );
 
         foreach ($data as $d) {
-            self::assertFalse($wefact->parseError($d['input'], empty($d['code']) ? null : $d['code']));
+            self::assertFalse($hostfact->parseError($d['input'], empty($d['code']) ? null : $d['code']));
 
-            self::assertEquals(array($d['expected']), $wefact->Error);
+            self::assertEquals(array($d['expected']), $hostfact->Error);
 
-            $wefact->Error = array();
+            $hostfact->Error = array();
         }
     }
 }

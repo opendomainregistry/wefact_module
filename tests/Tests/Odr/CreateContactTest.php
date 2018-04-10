@@ -9,9 +9,9 @@ class CreateContactTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -21,14 +21,14 @@ class CreateContactTest extends UnitTestCase
 
         $whois = new Whois;
 
-        self::assertFalse($wefact->createContact($whois));
+        self::assertFalse($hostfact->createContact($whois));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -38,14 +38,14 @@ class CreateContactTest extends UnitTestCase
 
         $whois = new Whois;
 
-        self::assertFalse($wefact->createContact($whois));
+        self::assertFalse($hostfact->createContact($whois));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -55,17 +55,17 @@ class CreateContactTest extends UnitTestCase
 
         $whois = new Whois;
 
-        self::assertFalse($wefact->createContact($whois));
+        self::assertFalse($hostfact->createContact($whois));
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
         $whois = new Whois;
 
         $whois->ownerSex = 'm';
 
-        self::assertEquals(1, $wefact->createContact($whois));
+        self::assertEquals(1, $hostfact->createContact($whois));
     }
 }

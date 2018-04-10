@@ -7,9 +7,9 @@ class GetTokenTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -17,14 +17,14 @@ class GetTokenTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getToken('test.nl'));
+        self::assertFalse($hostfact->getToken('test.nl'));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -32,14 +32,14 @@ class GetTokenTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getToken('test.nl'));
+        self::assertFalse($hostfact->getToken('test.nl'));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -47,15 +47,15 @@ class GetTokenTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getToken('test.nl'));
+        self::assertFalse($hostfact->getToken('test.nl'));
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
         $expected = md5('test.nl');
 
-        self::assertEquals($expected, $wefact->getToken('test.nl'));
+        self::assertEquals($expected, $hostfact->getToken('test.nl'));
     }
 }

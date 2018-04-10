@@ -10,32 +10,32 @@ class GetAvailableTldsTest extends UnitTestCase
 {
     public function testCheckCached()
     {
-        $wefact = new Module;
-        $cached = $this->getSecureProperty($wefact, '_availableTlds');
+        $hostfact = new Module;
+        $cached = $this->getSecureProperty($hostfact, '_availableTlds');
 
         $expected = array(
             'be',
             'eu',
         );
 
-        $cached->setValue($wefact, $expected);
+        $cached->setValue($hostfact, $expected);
 
-        self::assertEquals($expected, $wefact->getAvailableTlds());
+        self::assertEquals($expected, $hostfact->getAvailableTlds());
     }
 
     public function testNoRegistrarId()
     {
-        $wefact = new Module;
+        $hostfact = new Module;
 
-        self::assertNull($wefact->getAvailableTlds());
+        self::assertNull($hostfact->getAvailableTlds());
     }
 
     public function testExpected()
     {
-        $wefact = new Module;
+        $hostfact = new Module;
         $model  = Model::getInstance();
 
-        $this->getSecureProperty($wefact, '_registrarId')->setValue($wefact, 1);
+        $this->getSecureProperty($hostfact, '_registrarId')->setValue($hostfact, 1);
 
         $response = $this->getSecureProperty($model, '_response');
 
@@ -47,7 +47,7 @@ class GetAvailableTldsTest extends UnitTestCase
 
         $response->setValue($model, $expected);
 
-        self::assertEquals($expected, $wefact->getAvailableTlds());
+        self::assertEquals($expected, $hostfact->getAvailableTlds());
 
         $response->setValue($model, null);
     }

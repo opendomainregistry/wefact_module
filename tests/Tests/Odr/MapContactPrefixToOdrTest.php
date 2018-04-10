@@ -7,7 +7,7 @@ class MapContactPrefixToOdrTest extends UnitTestCase
 {
     public function testPairing()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
         $data = array(
             'owner'    => 'REGISTRANT',
@@ -20,7 +20,7 @@ class MapContactPrefixToOdrTest extends UnitTestCase
         );
 
         foreach ($data as $input => $expected) {
-            self::assertEquals($expected, $wefact->mapContactPrefixToOdr($input));
+            self::assertEquals($expected, $hostfact->mapContactPrefixToOdr($input));
         }
     }
 }

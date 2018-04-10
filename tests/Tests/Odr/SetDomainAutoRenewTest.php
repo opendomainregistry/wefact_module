@@ -7,23 +7,23 @@ class SetDomainAutoRenewTest extends UnitTestCase
 {
     public function testTrue()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        self::assertTrue($wefact->setDomainAutoRenew('test.nl', true));
+        self::assertTrue($hostfact->setDomainAutoRenew('test.nl', true));
     }
 
     public function testFalse()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        self::assertTrue($wefact->setDomainAutoRenew('test.nl', false));
+        self::assertTrue($hostfact->setDomainAutoRenew('test.nl', false));
     }
 
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -31,14 +31,14 @@ class SetDomainAutoRenewTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->setDomainAutoRenew('test.nl', false));
+        self::assertFalse($hostfact->setDomainAutoRenew('test.nl', false));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -46,14 +46,14 @@ class SetDomainAutoRenewTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->setDomainAutoRenew('test.nl', false));
+        self::assertFalse($hostfact->setDomainAutoRenew('test.nl', false));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -61,6 +61,6 @@ class SetDomainAutoRenewTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->setDomainAutoRenew('test.nl', false));
+        self::assertFalse($hostfact->setDomainAutoRenew('test.nl', false));
     }
 }

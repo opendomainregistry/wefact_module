@@ -9,33 +9,33 @@ class GetContactPrefixTest extends UnitTestCase
 {
     public function testDefault()
     {
-        $wefact = new Module;
-        $method = $this->getSecureMethod($wefact, '_getContactPrefix');
+        $hostfact = new Module;
+        $method = $this->getSecureMethod($hostfact, '_getContactPrefix');
 
-        self::assertEquals('', $method->invoke($wefact, 'test'));
+        self::assertEquals('', $method->invoke($hostfact, 'test'));
     }
 
     public function testOwner()
     {
-        $wefact = new Module;
-        $method = $this->getSecureMethod($wefact, '_getContactPrefix');
+        $hostfact = new Module;
+        $method = $this->getSecureMethod($hostfact, '_getContactPrefix');
 
-        self::assertEquals('owner', $method->invoke($wefact, HANDLE_OWNER));
+        self::assertEquals('owner', $method->invoke($hostfact, HANDLE_OWNER));
     }
 
     public function testAdmin()
     {
-        $wefact = new Module;
-        $method = $this->getSecureMethod($wefact, '_getContactPrefix');
+        $hostfact = new Module;
+        $method = $this->getSecureMethod($hostfact, '_getContactPrefix');
 
-        self::assertEquals('admin', $method->invoke($wefact, HANDLE_ADMIN));
+        self::assertEquals('admin', $method->invoke($hostfact, HANDLE_ADMIN));
     }
 
     public function testTech()
     {
-        $wefact = new Module;
-        $method = $this->getSecureMethod($wefact, '_getContactPrefix');
+        $hostfact = new Module;
+        $method = $this->getSecureMethod($hostfact, '_getContactPrefix');
 
-        self::assertEquals('tech', $method->invoke($wefact, HANDLE_TECH));
+        self::assertEquals('tech', $method->invoke($hostfact, HANDLE_TECH));
     }
 }

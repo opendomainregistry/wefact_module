@@ -7,26 +7,26 @@ class CheckLoginTest extends UnitTestCase
 {
     public function testLogged()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkLogin');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkLogin');
 
-        $this->getSecureProperty($wefact, 'AccessToken')->setValue($wefact, true);
+        $this->getSecureProperty($hostfact, 'AccessToken')->setValue($hostfact, true);
 
-        self::assertTrue($method->invoke($wefact));
+        self::assertTrue($method->invoke($hostfact));
     }
 
     public function testInvalidLogin()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkLogin');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkLogin');
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$secret',
             )
         );
 
-        self::assertFalse($method->invoke($wefact));
+        self::assertFalse($method->invoke($hostfact));
     }
 }

@@ -9,9 +9,9 @@ class RegisterDomainTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -19,14 +19,14 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->registerDomain('test.nl'));
+        self::assertFalse($hostfact->registerDomain('test.nl'));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -34,14 +34,14 @@ class RegisterDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->registerDomain('test.nl'));
+        self::assertFalse($hostfact->registerDomain('test.nl'));
     }
 
     public function testErrorAdmin()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -55,14 +55,14 @@ class RegisterDomainTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->registerDomain('test.nl', array(), $whois, true));
+        self::assertFalse($hostfact->registerDomain('test.nl', array(), $whois, true));
     }
 
     public function testErrorTech()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -80,14 +80,14 @@ class RegisterDomainTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->registerDomain('test.nl', array(), $whois));
+        self::assertFalse($hostfact->registerDomain('test.nl', array(), $whois));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'             => 'public$success',
                 'api_secret'          => 'secret$success',
@@ -110,14 +110,14 @@ class RegisterDomainTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->registerDomain('test.nl', array(), $whois));
+        self::assertFalse($hostfact->registerDomain('test.nl', array(), $whois));
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -139,14 +139,14 @@ class RegisterDomainTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertTrue($wefact->registerDomain('test.nl', array(), $whois));
+        self::assertTrue($hostfact->registerDomain('test.nl', array(), $whois));
     }
 
     public function testSuccessWithNameservers()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -168,14 +168,14 @@ class RegisterDomainTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertTrue($wefact->registerDomain('test.nl', array('ns1' => 'ns1.test.ru', 'ns2' => 'ns2.test.ru'), $whois));
+        self::assertTrue($hostfact->registerDomain('test.nl', array('ns1' => 'ns1.test.ru', 'ns2' => 'ns2.test.ru'), $whois));
     }
 
     public function testDError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'             => 'public$success',
                 'api_secret'          => 'secret$success',
@@ -197,14 +197,14 @@ class RegisterDomainTest extends UnitTestCase
         $whois->techRegistrarHandles = array(
             'opendomainregistry' => 1,
         );
-        self::assertFalse($wefact->registerDomain('test.nl', array(), $whois));
+        self::assertFalse($hostfact->registerDomain('test.nl', array(), $whois));
     }
 
     public function testDException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'             => 'public$success',
                 'api_secret'          => 'secret$success',
@@ -227,14 +227,14 @@ class RegisterDomainTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->registerDomain('test.nl', array(), $whois));
+        self::assertFalse($hostfact->registerDomain('test.nl', array(), $whois));
     }
 
     public function testDInternal()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'             => 'public$success',
                 'api_secret'          => 'secret$success',
@@ -257,16 +257,16 @@ class RegisterDomainTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->registerDomain('test.nl', array(), $whois));
+        self::assertFalse($hostfact->registerDomain('test.nl', array(), $whois));
 
-        self::assertEquals(array('ODR: Someone wanted it!'), $wefact->Error);
+        self::assertEquals(array('ODR: Someone wanted it!'), $hostfact->Error);
     }
 
     public function testDInternalNoMessage()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'             => 'public$success',
                 'api_secret'          => 'secret$success',
@@ -289,8 +289,8 @@ class RegisterDomainTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->registerDomain('test.nl', array(), $whois));
+        self::assertFalse($hostfact->registerDomain('test.nl', array(), $whois));
 
-        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $hostfact->Error);
     }
 }

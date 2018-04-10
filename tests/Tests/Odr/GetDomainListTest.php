@@ -7,9 +7,9 @@ class GetDomainListTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -17,14 +17,14 @@ class GetDomainListTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainList());
+        self::assertFalse($hostfact->getDomainList());
     }
 
     public function testThrown()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'         => 'public$success',
                 'api_secret'      => 'secret$success',
@@ -33,14 +33,14 @@ class GetDomainListTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainList());
+        self::assertFalse($hostfact->getDomainList());
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -48,14 +48,14 @@ class GetDomainListTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainList());
+        self::assertFalse($hostfact->getDomainList());
     }
 
     public function testErrorDomainList()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'         => 'public$success',
                 'api_secret'      => 'secret$success',
@@ -64,14 +64,14 @@ class GetDomainListTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainList());
+        self::assertFalse($hostfact->getDomainList());
     }
 
     public function testErrorDomainListNoMessage()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'         => 'public$success',
                 'api_secret'      => 'secret$success',
@@ -80,16 +80,16 @@ class GetDomainListTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainList());
+        self::assertFalse($hostfact->getDomainList());
 
-        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $hostfact->Error);
     }
 
     public function testErrorDomainListInternal()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'         => 'public$success',
                 'api_secret'      => 'secret$success',
@@ -98,14 +98,14 @@ class GetDomainListTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainList());
+        self::assertFalse($hostfact->getDomainList());
 
-        self::assertEquals(array('ODR: Someone wanted it!'), $wefact->Error);
+        self::assertEquals(array('ODR: Someone wanted it!'), $hostfact->Error);
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
         $expected = array(
             array(
@@ -130,16 +130,16 @@ class GetDomainListTest extends UnitTestCase
             ),
         );
 
-        self::assertEquals($expected, $wefact->getDomainList('test'));
+        self::assertEquals($expected, $hostfact->getDomainList('test'));
     }
 
     public function testSuccessTldFilter()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $availableTlds = $this->getSecureProperty($wefact, '_availableTlds');
+        $availableTlds = $this->getSecureProperty($hostfact, '_availableTlds');
 
-        $availableTlds->setValue($wefact, array('be', 'eu', 'nl'));
+        $availableTlds->setValue($hostfact, array('be', 'eu', 'nl'));
 
         $expected = array(
             array(
@@ -164,6 +164,6 @@ class GetDomainListTest extends UnitTestCase
             ),
         );
 
-        self::assertEquals($expected, $wefact->getDomainList('test'));
+        self::assertEquals($expected, $hostfact->getDomainList('test'));
     }
 }

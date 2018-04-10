@@ -9,25 +9,25 @@ class VersionTest extends UnitTestCase
 {
     public function testDefault()
     {
-        $wefact = new Module;
+        $hostfact = new Module;
 
         $version = include 'opendomainregistry/version.php';
 
-        self::assertEquals($version, $wefact->getVersionInformation());
+        self::assertEquals($version, $hostfact->getVersionInformation());
         
         self::checkVersionData($version);
     }
     
     public function testCustom()
     {
-        $wefact = new Module;
+        $hostfact = new Module;
 
         $versionFile = 'tests/mocks/version_custom.php';
         $version     = include $versionFile;
 
-        $this->getSecureProperty($wefact, '_versionFile')->setValue($wefact, $versionFile);
+        $this->getSecureProperty($hostfact, '_versionFile')->setValue($hostfact, $versionFile);
 
-        self::assertEquals($version, $wefact->getVersionInformation());
+        self::assertEquals($version, $hostfact->getVersionInformation());
 
         self::checkVersionData($version);
     }

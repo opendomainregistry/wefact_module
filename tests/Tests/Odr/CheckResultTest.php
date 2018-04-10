@@ -9,24 +9,24 @@ class CheckResultTest extends UnitTestCase
 {
     public function testGood()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkResult');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkResult');
 
-        $wefact->odr->setResult(
+        $hostfact->odr->setResult(
             array(
                 'status' => Odr::STATUS_SUCCESS,
             )
         );
 
-        self::assertTrue($method->invoke($wefact, true));
+        self::assertTrue($method->invoke($hostfact, true));
     }
 
     public function testGoodArray()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkResult');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkResult');
 
-        $wefact->odr->setResult(
+        $hostfact->odr->setResult(
             array(
                 'status' => Odr::STATUS_SUCCESS,
             )
@@ -37,15 +37,15 @@ class CheckResultTest extends UnitTestCase
             'Die'  => 'false',
         );
 
-        self::assertEquals($expected, $method->invoke($wefact, $expected));
+        self::assertEquals($expected, $method->invoke($hostfact, $expected));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkResult');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkResult');
 
-        $wefact->odr->setResult(
+        $hostfact->odr->setResult(
             array(
                 'status'   => Odr::STATUS_ERROR,
                 'response' => array(
@@ -54,15 +54,15 @@ class CheckResultTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($method->invoke($wefact, true));
+        self::assertFalse($method->invoke($hostfact, true));
     }
 
     public function testErrorArray()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkResult');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkResult');
 
-        $wefact->odr->setResult(
+        $hostfact->odr->setResult(
             array(
                 'status'   => Odr::STATUS_ERROR,
                 'response' => array(
@@ -74,15 +74,15 @@ class CheckResultTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($method->invoke($wefact, true));
+        self::assertFalse($method->invoke($hostfact, true));
     }
 
     public function testErrorLogout()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkResult');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkResult');
 
-        $wefact->odr->setResult(
+        $hostfact->odr->setResult(
             array(
                 'status'   => Odr::STATUS_ERROR,
                 'response' => array(
@@ -94,15 +94,15 @@ class CheckResultTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($method->invoke($wefact, true, true));
+        self::assertFalse($method->invoke($hostfact, true, true));
     }
 
     public function testErrorFailedResponse()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkResult');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkResult');
 
-        $wefact->odr->setResult(
+        $hostfact->odr->setResult(
             array(
                 'status'   => Odr::STATUS_SUCCESS,
                 'response' => array(
@@ -111,17 +111,17 @@ class CheckResultTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($method->invoke($wefact, true, true));
+        self::assertFalse($method->invoke($hostfact, true, true));
 
-        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $hostfact->Error);
     }
 
     public function testErrorFailedResponseWithMessage()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkResult');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkResult');
 
-        $wefact->odr->setResult(
+        $hostfact->odr->setResult(
             array(
                 'status'   => Odr::STATUS_SUCCESS,
                 'response' => array(
@@ -133,8 +133,8 @@ class CheckResultTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($method->invoke($wefact, true, true));
+        self::assertFalse($method->invoke($hostfact, true, true));
 
-        self::assertEquals(array('ODR: False'), $wefact->Error);
+        self::assertEquals(array('ODR: False'), $hostfact->Error);
     }
 }

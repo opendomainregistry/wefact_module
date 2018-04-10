@@ -9,22 +9,22 @@ class CheckPeriodTest extends UnitTestCase
 {
     public function testDefault()
     {
-        $wefact = new Module;
+        $hostfact = new Module;
 
-        $wefact->Period = 99;
+        $hostfact->Period = 99;
 
-        self::assertEquals(99, $wefact->Period);
+        self::assertEquals(99, $hostfact->Period);
 
-        $method = $this->getSecureMethod($wefact, '_checkPeriod');
+        $method = $this->getSecureMethod($hostfact, '_checkPeriod');
 
-        self::assertEquals(1, $method->invoke($wefact, 'notexistingtldforsure'));
+        self::assertEquals(1, $method->invoke($hostfact, 'notexistingtldforsure'));
     }
 
     public function test2Years()
     {
-        $wefact = new Module;
+        $hostfact = new Module;
 
-        $method = $this->getSecureMethod($wefact, '_checkPeriod');
+        $method = $this->getSecureMethod($hostfact, '_checkPeriod');
 
         $tlds = array(
             'to',
@@ -33,17 +33,17 @@ class CheckPeriodTest extends UnitTestCase
         );
 
         foreach ($tlds as $tld) {
-            self::assertEquals(2, $method->invoke($wefact, $tld));
+            self::assertEquals(2, $method->invoke($hostfact, $tld));
         }
 
-        self::assertEquals(1, $method->invoke($wefact, 'notexistingtldforsure'));
+        self::assertEquals(1, $method->invoke($hostfact, 'notexistingtldforsure'));
     }
 
     public function test3Years()
     {
-        $wefact = new Module;
+        $hostfact = new Module;
 
-        $method = $this->getSecureMethod($wefact, '_checkPeriod');
+        $method = $this->getSecureMethod($hostfact, '_checkPeriod');
 
         $tlds = array(
             'vc',
@@ -51,26 +51,26 @@ class CheckPeriodTest extends UnitTestCase
         );
 
         foreach ($tlds as $tld) {
-            self::assertEquals(3, $method->invoke($wefact, $tld));
+            self::assertEquals(3, $method->invoke($hostfact, $tld));
         }
 
-        self::assertEquals(1, $method->invoke($wefact, 'notexistingtldforsure'));
+        self::assertEquals(1, $method->invoke($hostfact, 'notexistingtldforsure'));
     }
 
     public function test10Years()
     {
-        $wefact = new Module;
+        $hostfact = new Module;
 
-        $method = $this->getSecureMethod($wefact, '_checkPeriod');
+        $method = $this->getSecureMethod($hostfact, '_checkPeriod');
 
         $tlds = array(
             'tm',
         );
 
         foreach ($tlds as $tld) {
-            self::assertEquals(10, $method->invoke($wefact, $tld));
+            self::assertEquals(10, $method->invoke($hostfact, $tld));
         }
 
-        self::assertEquals(1, $method->invoke($wefact, 'notexistingtldforsure'));
+        self::assertEquals(1, $method->invoke($hostfact, 'notexistingtldforsure'));
     }
 }

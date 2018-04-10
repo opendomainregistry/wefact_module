@@ -7,23 +7,23 @@ class CheckLogoutTest extends UnitTestCase
 {
     public function testNo()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkLogout');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkLogout');
 
-        self::assertNull($method->invoke($wefact, false));
+        self::assertNull($method->invoke($hostfact, false));
     }
 
     public function testInvalidLogin()
     {
-        $wefact = $this->getModule();
-        $method = $this->getSecureMethod($wefact, '_checkLogout');
+        $hostfact = $this->getModule();
+        $method = $this->getSecureMethod($hostfact, '_checkLogout');
 
-        $token = $this->getSecureProperty($wefact, 'AccessToken');
+        $token = $this->getSecureProperty($hostfact, 'AccessToken');
 
-        $token->setValue($wefact, true);
+        $token->setValue($hostfact, true);
 
-        self::assertNull($method->invoke($wefact, true));
+        self::assertNull($method->invoke($hostfact, true));
 
-        self::assertTrue($token->getValue($wefact));
+        self::assertTrue($token->getValue($hostfact));
     }
 }

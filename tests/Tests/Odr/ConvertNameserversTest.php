@@ -7,7 +7,7 @@ class ConvertNameserversTest extends UnitTestCase
 {
     public function testPairing()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
         $domain = 'test.eu';
 
         $data = array(
@@ -113,7 +113,7 @@ class ConvertNameserversTest extends UnitTestCase
         );
 
         foreach ($data as $d) {
-            self::assertEquals($d['expected'], $wefact->convertNameservers('test.eu', $d['input']));
+            self::assertEquals($d['expected'], $hostfact->convertNameservers('test.eu', $d['input']));
         }
     }
 }

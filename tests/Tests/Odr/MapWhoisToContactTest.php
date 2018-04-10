@@ -9,7 +9,7 @@ class MapWhoisToContactTest extends UnitTestCase
 {
     public function testState()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
         $whois  = new Whois;
 
         $prefix = 'owner';
@@ -47,12 +47,12 @@ class MapWhoisToContactTest extends UnitTestCase
             'type'                    => 'REGISTRANT',
         );
 
-        self::assertEquals($expected, $wefact->mapWhoisToContact($whois, HANDLE_OWNER));
+        self::assertEquals($expected, $hostfact->mapWhoisToContact($whois, HANDLE_OWNER));
     }
 
     public function testRegion()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
         $whois  = new Whois;
 
         $prefix = 'owner';
@@ -90,12 +90,12 @@ class MapWhoisToContactTest extends UnitTestCase
             'type'                    => 'REGISTRANT',
         );
 
-        self::assertEquals($expected, $wefact->mapWhoisToContact($whois, HANDLE_OWNER));
+        self::assertEquals($expected, $hostfact->mapWhoisToContact($whois, HANDLE_OWNER));
     }
 
     public function testBoth()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
         $whois  = new Whois;
 
         $prefix = 'owner';
@@ -134,12 +134,12 @@ class MapWhoisToContactTest extends UnitTestCase
             'type'                    => 'REGISTRANT',
         );
 
-        self::assertEquals($expected, $wefact->mapWhoisToContact($whois, HANDLE_OWNER));
+        self::assertEquals($expected, $hostfact->mapWhoisToContact($whois, HANDLE_OWNER));
     }
 
     public function testBothCustom()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
         $whois  = new Whois;
 
         $prefix = 'owner';
@@ -178,6 +178,6 @@ class MapWhoisToContactTest extends UnitTestCase
             'type'                    => 'REGISTRANT',
         );
 
-        self::assertEquals($expected, $wefact->mapWhoisToContact($whois, HANDLE_OWNER));
+        self::assertEquals($expected, $hostfact->mapWhoisToContact($whois, HANDLE_OWNER));
     }
 }

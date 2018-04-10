@@ -7,9 +7,9 @@ class UpdateNameServersTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -17,14 +17,14 @@ class UpdateNameServersTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->updateNameServers('test.nl'));
+        self::assertFalse($hostfact->updateNameServers('test.nl'));
     }
 
     public function testInfoError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -33,14 +33,14 @@ class UpdateNameServersTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->updateNameServers('test.nl'));
+        self::assertFalse($hostfact->updateNameServers('test.nl'));
     }
 
     public function testInfoException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -49,14 +49,14 @@ class UpdateNameServersTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->updateNameServers('test.nl'));
+        self::assertFalse($hostfact->updateNameServers('test.nl'));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -64,14 +64,14 @@ class UpdateNameServersTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->updateNameServers('test.nl'));
+        self::assertFalse($hostfact->updateNameServers('test.nl'));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'     => 'public$success',
                 'api_secret'  => 'secret$success',
@@ -80,14 +80,14 @@ class UpdateNameServersTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->updateNameServers('test.nl'));
+        self::assertFalse($hostfact->updateNameServers('test.nl'));
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -95,6 +95,6 @@ class UpdateNameServersTest extends UnitTestCase
             )
         );
 
-        self::assertTrue($wefact->updateNameServers('test.nl'));
+        self::assertTrue($hostfact->updateNameServers('test.nl'));
     }
 }

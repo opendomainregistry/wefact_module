@@ -7,80 +7,80 @@ class ResetTest extends UnitTestCase
 {
     public function testLogged()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $this->getSecureProperty($wefact, 'AccessToken')->setValue($wefact, true);
+        $this->getSecureProperty($hostfact, 'AccessToken')->setValue($hostfact, true);
 
-        self::assertTrue($wefact->reset());
+        self::assertTrue($hostfact->reset());
     }
 
     public function testInvalidFormat()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->User = 'failure';
+        $hostfact->User = 'failure';
 
-        self::assertFalse($wefact->reset());
+        self::assertFalse($hostfact->reset());
     }
 
     public function testInvalidLogin()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$secret',
             )
         );
 
-        self::assertFalse($wefact->reset());
+        self::assertFalse($hostfact->reset());
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$throw',
             )
         );
 
-        self::assertFalse($wefact->reset());
+        self::assertFalse($hostfact->reset());
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        self::assertTrue($wefact->reset());
+        self::assertTrue($hostfact->reset());
 
-        self::assertEquals('token$success', $this->getSecureProperty($wefact, 'AccessToken')->getValue($wefact));
+        self::assertEquals('token$success', $this->getSecureProperty($hostfact, 'AccessToken')->getValue($hostfact));
     }
 
     public function testSession()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
         $_SESSION = array(
-            $wefact::ODR_TOKEN_SESSION => '1',
+            $hostfact::ODR_TOKEN_SESSION => '1',
         );
 
-        $this->getSecureProperty($wefact, 'AccessToken')->setValue($wefact, null);
+        $this->getSecureProperty($hostfact, 'AccessToken')->setValue($hostfact, null);
 
-        self::assertTrue($wefact->reset());
+        self::assertTrue($hostfact->reset());
 
-        self::assertEquals('1', $this->getSecureProperty($wefact, 'AccessToken')->getValue($wefact));
-        self::assertEquals('1', $wefact->getAccessToken());
+        self::assertEquals('1', $this->getSecureProperty($hostfact, 'AccessToken')->getValue($hostfact));
+        self::assertEquals('1', $hostfact->getAccessToken());
     }
 
     public function testAccessTokenSet()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -90,25 +90,25 @@ class ResetTest extends UnitTestCase
         );
 
         $_SESSION = array(
-            $wefact::ODR_TOKEN_SESSION => 'B',
+            $hostfact::ODR_TOKEN_SESSION => 'B',
         );
 
-        $this->getSecureProperty($wefact, 'AccessToken')->setValue($wefact, 'B');
+        $this->getSecureProperty($hostfact, 'AccessToken')->setValue($hostfact, 'B');
 
-        self::assertTrue($wefact->reset());
+        self::assertTrue($hostfact->reset());
 
-        self::assertArrayHasKey($wefact::ODR_TOKEN_SESSION, $_SESSION);
+        self::assertArrayHasKey($hostfact::ODR_TOKEN_SESSION, $_SESSION);
 
-        self::assertEquals('B', $this->getSecureProperty($wefact, 'AccessToken')->getValue($wefact));
-        self::assertEquals('B', $wefact->getAccessToken());
-        self::assertEquals('B', $_SESSION[$wefact::ODR_TOKEN_SESSION]);
+        self::assertEquals('B', $this->getSecureProperty($hostfact, 'AccessToken')->getValue($hostfact));
+        self::assertEquals('B', $hostfact->getAccessToken());
+        self::assertEquals('B', $_SESSION[$hostfact::ODR_TOKEN_SESSION]);
     }
 
     public function testAccessTokenSetGetMeThrown()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -118,22 +118,22 @@ class ResetTest extends UnitTestCase
         );
 
         $_SESSION = array(
-            $wefact::ODR_TOKEN_SESSION => 'B',
+            $hostfact::ODR_TOKEN_SESSION => 'B',
         );
 
-        $this->getSecureProperty($wefact, 'AccessToken')->setValue($wefact, 'B');
+        $this->getSecureProperty($hostfact, 'AccessToken')->setValue($hostfact, 'B');
 
-        self::assertTrue($wefact->reset());
+        self::assertTrue($hostfact->reset());
 
-        self::assertEquals('token$success', $this->getSecureProperty($wefact, 'AccessToken')->getValue($wefact));
-        self::assertEquals('token$success', $wefact->getAccessToken());
+        self::assertEquals('token$success', $this->getSecureProperty($hostfact, 'AccessToken')->getValue($hostfact));
+        self::assertEquals('token$success', $hostfact->getAccessToken());
     }
 
     public function testAccessTokenSetGetMeError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -143,22 +143,22 @@ class ResetTest extends UnitTestCase
         );
 
         $_SESSION = array(
-            $wefact::ODR_TOKEN_SESSION => 'B',
+            $hostfact::ODR_TOKEN_SESSION => 'B',
         );
 
-        $this->getSecureProperty($wefact, 'AccessToken')->setValue($wefact, 'B');
+        $this->getSecureProperty($hostfact, 'AccessToken')->setValue($hostfact, 'B');
 
-        self::assertTrue($wefact->reset());
+        self::assertTrue($hostfact->reset());
 
-        self::assertEquals('token$success', $this->getSecureProperty($wefact, 'AccessToken')->getValue($wefact));
-        self::assertEquals('token$success', $wefact->getAccessToken());
+        self::assertEquals('token$success', $this->getSecureProperty($hostfact, 'AccessToken')->getValue($hostfact));
+        self::assertEquals('token$success', $hostfact->getAccessToken());
     }
 
     public function testAccessTokenSetGetMeErrorFalse()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -168,14 +168,14 @@ class ResetTest extends UnitTestCase
         );
 
         $_SESSION = array(
-            $wefact::ODR_TOKEN_SESSION => 'B',
+            $hostfact::ODR_TOKEN_SESSION => 'B',
         );
 
-        $this->getSecureProperty($wefact, 'AccessToken')->setValue($wefact, 'B');
+        $this->getSecureProperty($hostfact, 'AccessToken')->setValue($hostfact, 'B');
 
-        self::assertFalse($wefact->reset());
+        self::assertFalse($hostfact->reset());
 
-        self::assertFalse($this->getSecureProperty($wefact, 'AccessToken')->getValue($wefact));
-        self::assertFalse($wefact->getAccessToken());
+        self::assertFalse($this->getSecureProperty($hostfact, 'AccessToken')->getValue($hostfact));
+        self::assertFalse($hostfact->getAccessToken());
     }
 }

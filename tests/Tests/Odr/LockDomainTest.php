@@ -7,23 +7,23 @@ class LockDomainTest extends UnitTestCase
 {
     public function testTrue()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        self::assertFalse($wefact->lockDomain('test.nl', true));
+        self::assertFalse($hostfact->lockDomain('test.nl', true));
     }
 
     public function testFalse()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        self::assertFalse($wefact->lockDomain('test.nl', false));
+        self::assertFalse($hostfact->lockDomain('test.nl', false));
     }
 
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -31,14 +31,14 @@ class LockDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->lockDomain('test.nl', false));
+        self::assertFalse($hostfact->lockDomain('test.nl', false));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -46,6 +46,6 @@ class LockDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->lockDomain('test.nl', false));
+        self::assertFalse($hostfact->lockDomain('test.nl', false));
     }
 }

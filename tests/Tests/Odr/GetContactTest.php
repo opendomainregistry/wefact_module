@@ -7,16 +7,16 @@ class GetContactTest extends UnitTestCase
 {
     public function testNoHandle()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        self::assertFalse($wefact->getContact(0));
+        self::assertFalse($hostfact->getContact(0));
     }
 
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -24,14 +24,14 @@ class GetContactTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getContact(1));
+        self::assertFalse($hostfact->getContact(1));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -39,14 +39,14 @@ class GetContactTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getContact(1));
+        self::assertFalse($hostfact->getContact(1));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -54,6 +54,6 @@ class GetContactTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getContact(1));
+        self::assertFalse($hostfact->getContact(1));
     }
 }

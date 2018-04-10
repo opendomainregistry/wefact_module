@@ -9,9 +9,9 @@ class UpdateDomainWhoisTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -21,14 +21,14 @@ class UpdateDomainWhoisTest extends UnitTestCase
 
         $whois = new Whois;
 
-        self::assertFalse($wefact->updateDomainWhois('test.nl', $whois));
+        self::assertFalse($hostfact->updateDomainWhois('test.nl', $whois));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -38,14 +38,14 @@ class UpdateDomainWhoisTest extends UnitTestCase
 
         $whois = new Whois;
 
-        self::assertFalse($wefact->updateDomainWhois('test.nl', $whois));
+        self::assertFalse($hostfact->updateDomainWhois('test.nl', $whois));
     }
 
     public function testInfoError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -68,14 +68,14 @@ class UpdateDomainWhoisTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->updateDomainWhois('test.nl', $whois));
+        self::assertFalse($hostfact->updateDomainWhois('test.nl', $whois));
     }
 
     public function testInfoException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -98,14 +98,14 @@ class UpdateDomainWhoisTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->updateDomainWhois('test.nl', $whois));
+        self::assertFalse($hostfact->updateDomainWhois('test.nl', $whois));
     }
 
     public function testErrorAdmin()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -119,14 +119,14 @@ class UpdateDomainWhoisTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->updateDomainWhois('test.nl', $whois));
+        self::assertFalse($hostfact->updateDomainWhois('test.nl', $whois));
     }
 
     public function testErrorTech()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -144,14 +144,14 @@ class UpdateDomainWhoisTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->updateDomainWhois('test.nl', $whois));
+        self::assertFalse($hostfact->updateDomainWhois('test.nl', $whois));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'     => 'public$success',
                 'api_secret'  => 'secret$success',
@@ -174,14 +174,14 @@ class UpdateDomainWhoisTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertFalse($wefact->updateDomainWhois('test.nl', $whois));
+        self::assertFalse($hostfact->updateDomainWhois('test.nl', $whois));
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -203,6 +203,6 @@ class UpdateDomainWhoisTest extends UnitTestCase
             'opendomainregistry' => 1,
         );
 
-        self::assertTrue($wefact->updateDomainWhois('test.nl', $whois));
+        self::assertTrue($hostfact->updateDomainWhois('test.nl', $whois));
     }
 }

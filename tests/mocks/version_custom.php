@@ -1,10 +1,11 @@
 <?php
 $version = array();
 
-$version['name']           = 'Testable File';
-$version['api_version']    = '-1.01';
-$version['date']           = '2099-01-15';
-$version['wefact_version'] = '99.9';
+$version['name']             = 'Testable File';
+$version['api_version']      = '-1.01';
+$version['date']             = '2099-01-15';
+$version['wefact_version']   = '99.9';
+$version['hostfact_version'] = '99.9';
 
 $version['autorenew']      = false;
 $version['handle_support'] = false;

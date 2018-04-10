@@ -7,9 +7,9 @@ class GetDomainWhoisTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -17,14 +17,14 @@ class GetDomainWhoisTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainWhois('test.nl'));
+        self::assertFalse($hostfact->getDomainWhois('test.nl'));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -32,14 +32,14 @@ class GetDomainWhoisTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainWhois('test.nl'));
+        self::assertFalse($hostfact->getDomainWhois('test.nl'));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -47,12 +47,12 @@ class GetDomainWhoisTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->getDomainWhois('test.nl'));
+        self::assertFalse($hostfact->getDomainWhois('test.nl'));
     }
 
     public function testSuccess()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
         $expected = array(
             'ownerHandle' => 24,
@@ -60,6 +60,6 @@ class GetDomainWhoisTest extends UnitTestCase
             'techHandle'  => null,
         );
 
-        self::assertEquals($expected, $wefact->getDomainWhois('test.nl'));
+        self::assertEquals($expected, $hostfact->getDomainWhois('test.nl'));
     }
 }

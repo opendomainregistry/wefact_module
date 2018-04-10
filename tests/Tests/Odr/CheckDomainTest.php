@@ -7,9 +7,9 @@ class CheckDomainTest extends UnitTestCase
 {
     public function testNotLoggedIn()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$failure',
                 'api_secret' => 'secret$success',
@@ -17,14 +17,14 @@ class CheckDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->checkDomain('test.nl'));
+        self::assertFalse($hostfact->checkDomain('test.nl'));
     }
 
     public function testError()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'secret$success',
@@ -32,14 +32,14 @@ class CheckDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->checkDomain('test.nl'));
+        self::assertFalse($hostfact->checkDomain('test.nl'));
     }
 
     public function testException()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'    => 'public$success',
                 'api_secret' => 'public$success',
@@ -47,28 +47,28 @@ class CheckDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->checkDomain('test.nl'));
+        self::assertFalse($hostfact->checkDomain('test.nl'));
     }
 
     public function testTrue()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        self::assertTrue($wefact->checkDomain('test.nl'));
+        self::assertTrue($hostfact->checkDomain('test.nl'));
     }
 
     public function testFalse()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        self::assertFalse($wefact->checkDomain('test.eu'));
+        self::assertFalse($hostfact->checkDomain('test.eu'));
     }
 
     public function testErrorDomainListNoMessage()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'          => 'public$success',
                 'api_secret'       => 'secret$success',
@@ -77,16 +77,16 @@ class CheckDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->checkDomain('test.nl'));
+        self::assertFalse($hostfact->checkDomain('test.nl'));
 
-        self::assertEquals(array('ODR: Incorrectly formatted response'), $wefact->Error);
+        self::assertEquals(array('ODR: Incorrectly formatted response'), $hostfact->Error);
     }
 
     public function testErrorDomainListInternal()
     {
-        $wefact = $this->getModule();
+        $hostfact = $this->getModule();
 
-        $wefact->odr->setConfig(
+        $hostfact->odr->setConfig(
             array(
                 'api_key'          => 'public$success',
                 'api_secret'       => 'secret$success',
@@ -95,8 +95,8 @@ class CheckDomainTest extends UnitTestCase
             )
         );
 
-        self::assertFalse($wefact->checkDomain('test.nl'));
+        self::assertFalse($hostfact->checkDomain('test.nl'));
 
-        self::assertEquals(array('ODR: Someone wanted it!'), $wefact->Error);
+        self::assertEquals(array('ODR: Someone wanted it!'), $hostfact->Error);
     }
 }
