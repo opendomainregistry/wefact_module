@@ -78,6 +78,8 @@ class opendomainregistry implements IRegistrar
         $this->TldPeriod3  = array('vc','vg');
         $this->TldPeriod10 = array('tm');
 
+        return; // Remove in future releases
+
         $dir = basename(__DIR__);
 
         try {
